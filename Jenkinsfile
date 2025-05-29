@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         DOCKERHUB_USER = 'sanjodb'
-        DOCKER_CREDENTIALS_ID = 'Auth'
+        DOCKER_CREDENTIALS_ID = 'docker_password'
         SERVICES = 'api-gateway cloud-config favourite-service order-service payment-service product-service proxy-client service-discovery shipping-service user-service locust'
         K8S_NAMESPACE = 'ecommerce'
         KUBECONFIG = 'C:\\Users\\Santi\\.kube\\config'
@@ -128,17 +128,17 @@ pipeline {
 
 
        stage('Build & Package') {
-                   when { anyOf { branch 'master'; branch 'stage' } }
-                   steps {
-                       bat "mvn clean package -DskipTests"
-                   }
-               }
+            when { anyOf { branch 'master'; branch 'stage' } }
+            steps {
+                bat "mvn clean package -DskipTests"
+            }
+        }
 
        stage('Build & Push Docker Images') {
            when { anyOf { branch 'stage'; branch 'master' } }
            steps {
-               withCredentials([string(credentialsId: "${DOCKER_CREDENTIALS_ID}", variable: 'Auth')]) {
-                   bat "docker login -u ${DOCKERHUB_USER} -p ${Auth}"
+               withCredentials([string(credentialsId: "${DOCKER_CREDENTIALS_ID}", variable: 'docker_password')]) {
+                   bat "docker login -u ${DOCKERHUB_USER} -p ${docker_password}"
 
                    script {
                        SERVICES.split().each { service ->
