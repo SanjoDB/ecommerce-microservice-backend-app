@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payment-service
-  namespace: ecommerce-app
+  # namespace: ecommerce-app
   labels:
     app: payment-service
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: sanjodb/payment-service:latest
+          image: sanjodb/payment-service:prod
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8400

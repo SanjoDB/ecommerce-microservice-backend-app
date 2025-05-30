@@ -2,8 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: favourite-service
-#  namespace: ecommerce-app
-
+  # namespace: ecommerce-app
   labels:
     app: favourite-service
 spec:
@@ -18,7 +17,7 @@ spec:
     spec:
       containers:
       - name: favourite-service
-        image: sanjodb/favourite-service:latest
+        image: sanjodb/favourite-service:prod
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8800

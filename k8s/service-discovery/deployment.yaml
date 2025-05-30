@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: service-discovery
-        image: sanjodb/service-discovery:latest
+        image: sanjodb/service-discovery:prod
         ports:
         - containerPort: 8761
         resources:

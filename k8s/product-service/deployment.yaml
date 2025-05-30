@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: product-service
-  namespace: ecommerce-app
+  # namespace: ecommerce-app
   labels:
     app: product-service
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: product-service
-          image: sanjodb/product-service:latest
+          image: sanjodb/product-service:prod
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8500

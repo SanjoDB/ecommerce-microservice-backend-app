@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: proxy-client
-  namespace: ecommerce-app
+  # namespace: ecommerce-app
   labels:
     app: proxy-client
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: proxy-client
-          image: sanjodb/proxy-client:latest
+          image: sanjodb/proxy-client:prod
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8900
