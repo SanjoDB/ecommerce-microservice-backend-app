@@ -560,7 +560,7 @@ pipeline {
             when { anyOf { branch 'master'; } }
             steps {
                 script {
-                    def appServices = ['user-service', 'product-service', 'order-service','favourite-service','payment-service', 'shipping-service']
+                    def appServices = ['user-service', 'product-service', 'order-service','favourite-service','payment-service']
                     echo "👻"
                     appServices.each { svc ->
                         bat "kubectl apply -f k8s\\${svc} -n ${K8S_NAMESPACE}"
