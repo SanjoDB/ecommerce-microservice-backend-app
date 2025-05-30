@@ -162,7 +162,7 @@ pipeline {
      stage('Start containers for testing') {
               when {
                      anyOf {
-                         branch 'dev'
+                         branch 'master'
                          expression { env.BRANCH_NAME.startsWith('feature/') }
                      }
                  }
@@ -409,7 +409,7 @@ pipeline {
 
            when {
                 anyOf {
-                    branch 'dev'
+                    branch 'master'
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
@@ -458,7 +458,7 @@ pipeline {
        stage('Run Stress Tests with Locust') {
            when {
                 anyOf {
-                    branch 'dev'
+                    branch 'master'
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
@@ -505,7 +505,7 @@ pipeline {
        stage('Stop and remove containers') {
                 when {
                        anyOf {
-                           branch 'dev'
+                           branch 'master'
                            expression { env.BRANCH_NAME.startsWith('feature/') }
                        }
                 }
@@ -531,6 +531,8 @@ pipeline {
            }
        }
 
+        /*
+
         stage('Deploy Common Config') {
             when { anyOf { branch 'stage'; branch 'master' } }
             steps {
@@ -546,7 +548,7 @@ pipeline {
 
                 bat "kubectl apply -f k8s\\service-discovery -n ${K8S_NAMESPACE}"
                 bat "kubectl set image deployment/service-discovery service-discovery=${DOCKERHUB_USER}/service-discovery:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
-                bat "kubectl rollout status deployment/service-discovery -n ${K8S_NAMESPACE} --timeout=350s"
+                bat "kubectl rollout status deployment/service-discovery -n ${K8S_NAMESPACE} --timeout=500s"
 
                 bat "kubectl apply -f k8s\\cloud-config -n ${K8S_NAMESPACE}"
                 bat "kubectl set image deployment/cloud-config cloud-config=${DOCKERHUB_USER}/cloud-config:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
@@ -585,7 +587,7 @@ pipeline {
             }
         }
 
-
+        */
 
     }
 
