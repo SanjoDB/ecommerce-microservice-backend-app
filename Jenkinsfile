@@ -541,7 +541,7 @@ pipeline {
         }
 
         stage('Deploy Core Services') {
-             when { anyOf { branch 'stage'; branch 'master' } }
+            when { anyOf { branch 'stage'; branch 'master' } }
             steps {
                 bat "kubectl apply -f k8s\\zipkin -n ${K8S_NAMESPACE}"
                 bat "kubectl rollout status deployment/zipkin -n ${K8S_NAMESPACE} --timeout=200s"
