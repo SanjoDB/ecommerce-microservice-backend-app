@@ -56,7 +56,7 @@ public class E2ESuite {
                     .withExposedPorts(9411)
                     .waitingFor(Wait.forHttp("/").forStatusCode(200));
 
-            serviceDiscoveryContainer = new GenericContainer<>("selimhorri/service-discovery-ecommerce-boot:0.1.0")
+            serviceDiscoveryContainer = new GenericContainer<>("sanjodb/service-discovery:prod")
                     .withNetwork(network)
                     .withNetworkAliases("service-discovery-container")
                     .withExposedPorts(8761)
@@ -65,7 +65,7 @@ public class E2ESuite {
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296/")
                     .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
 
-            cloudConfigContainer = new GenericContainer<>("selimhorri/cloud-config-ecommerce-boot:0.1.0")
+            cloudConfigContainer = new GenericContainer<>("sanjodb/cloud-config:prod")
                     .withNetwork(network)
                     .withNetworkAliases("cloud-config-container")
                     .withExposedPorts(9296)
@@ -78,7 +78,7 @@ public class E2ESuite {
                     .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
 
             // Servicios de negocio (compose.yml)
-            apiGatewayContainer = new GenericContainer<>("selimhorri/api-gateway-ecommerce-boot:0.1.0")
+            apiGatewayContainer = new GenericContainer<>("sanjodb/api-gateway-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("api-gateway-container")
                     .withExposedPorts(8080)
@@ -92,21 +92,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
 
-            proxyClientContainer = new GenericContainer<>("selimhorri/proxy-client-ecommerce-boot:0.1.0")
-                    .withNetwork(network)
-                    .withNetworkAliases("proxy-client-container")
-                    .withExposedPorts(8900)
-                    .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "proxy-client-container")
-                    .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
-                    .withEnv("EUREKA_CLIENT_REGION", "default")
-                    .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
-                    .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
-                    .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
-                    .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
-                    .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
-
-            orderServiceContainer = new GenericContainer<>("selimhorri/order-service-ecommerce-boot:0.1.0")
+            orderServiceContainer = new GenericContainer<>("sanjodb/order-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("order-service-container")
                     .withExposedPorts(8300)
@@ -117,7 +103,7 @@ public class E2ESuite {
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
                     .waitingFor(Wait.forHttp("/order-service/actuator/health").forStatusCode(200));
 
-            paymentServiceContainer = new GenericContainer<>("selimhorri/payment-service-ecommerce-boot:0.1.0")
+            paymentServiceContainer = new GenericContainer<>("sanjodb/payment-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("payment-service-container")
                     .withExposedPorts(8400)
@@ -131,7 +117,7 @@ public class E2ESuite {
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
                     .waitingFor(Wait.forHttp("/payment-service/actuator/health").forStatusCode(200));
 
-            productServiceContainer = new GenericContainer<>("selimhorri/product-service-ecommerce-boot:0.1.0")
+            productServiceContainer = new GenericContainer<>("sanjodb/product-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("product-service-container")
                     .withExposedPorts(8500)
@@ -145,7 +131,7 @@ public class E2ESuite {
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
                     .waitingFor(Wait.forHttp("/product-service/actuator/health").forStatusCode(200));
 
-            shippingServiceContainer = new GenericContainer<>("selimhorri/shipping-service-ecommerce-boot:0.1.0")
+            shippingServiceContainer = new GenericContainer<>("sanjodb/shipping-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("shipping-service-container")
                     .withExposedPorts(8600)
@@ -159,7 +145,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .waitingFor(Wait.forHttp("/shipping-service/actuator/health").forStatusCode(200));
 
-            userServiceContainer = new GenericContainer<>("selimhorri/user-service-ecommerce-boot:0.1.0")
+            userServiceContainer = new GenericContainer<>("sanjodb/user-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("user-service-container")
                     .withExposedPorts(8700)
@@ -173,7 +159,7 @@ public class E2ESuite {
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
                     .waitingFor(Wait.forHttp("/user-service/actuator/health").forStatusCode(200));
 
-            favouriteServiceContainer = new GenericContainer<>("selimhorri/favourite-service-ecommerce-boot:0.1.0")
+            favouriteServiceContainer = new GenericContainer<>("sanjodb/favourite-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("favourite-service-container")
                     .withExposedPorts(8800)

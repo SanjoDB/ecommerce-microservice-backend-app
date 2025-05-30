@@ -96,38 +96,23 @@ pipeline {
 
 
         stage('Integration Tests') {
-                    when {
-                        anyOf {
-                            branch 'master'
-                            expression { env.BRANCH_NAME.startsWith('feature/') }
-                            allOf { not { branch 'master' }; not { branch 'release' } }
-                        }
-                    }
-                    steps {
-                        script {
-                            ['user-service', 'product-service'].each {
-                                bat "mvn verify -pl ${it}"
-                            }
-                        }
+            when {
+                anyOf {
+                    branch 'master'
+                    expression { env.BRANCH_NAME.startsWith('feature/') }
+                    allOf { not { branch 'master' }; not { branch 'release' } }
+                }
+            }
+            steps {
+                script {
+                    ['user-service', 'product-service'].each {
+                        bat "mvn verify -pl ${it}"
                     }
                 }
+            }
+        }
 
-         stage('E2E Tests') {
-                    when {
-                        anyOf {
-                            branch 'master'
-                            expression { env.BRANCH_NAME.startsWith('feature/') }
-                            allOf { not { branch 'master' }; not { branch 'release' } }
-                        }
-                    }
-                    steps {
-                        bat "mvn verify -pl e2e-tests"
-                    }
-                }
-
-
-
-       stage('Build & Package') {
+        stage('Build & Package') {
             when { anyOf { branch 'master'; branch 'stage' } }
             steps {
                 bat "mvn clean package -DskipTests"
@@ -149,6 +134,19 @@ pipeline {
                }
            }
        }
+
+        stage('E2E Tests') {
+            when {
+                anyOf {
+                    branch 'master'
+                    expression { env.BRANCH_NAME.startsWith('feature/') }
+                    allOf { not { branch 'master' }; not { branch 'release' } }
+                }
+            }
+            steps {
+                bat "mvn verify -pl e2e-tests"
+            }
+        }
 
 /*
 
