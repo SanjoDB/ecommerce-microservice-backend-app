@@ -77,6 +77,7 @@ pipeline {
                         }
 
 
+/*
 
          stage('Unit Tests') {
                     when {
@@ -112,6 +113,8 @@ pipeline {
             }
         }
 
+*/
+
         stage('Build & Package') {
             when { anyOf { branch 'master'; branch 'stage' } }
             steps {
@@ -137,7 +140,7 @@ pipeline {
             }
         }
 
-*/
+
 
         stage('E2E Tests') {
             when {
@@ -152,7 +155,9 @@ pipeline {
             }
         }
 
-/*
+*/
+
+
 
      stage('Start containers for testing') {
               when {
@@ -580,7 +585,7 @@ pipeline {
             }
         }
 
-*/
+
 
     }
 
