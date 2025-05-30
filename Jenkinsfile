@@ -160,6 +160,7 @@ pipeline {
 
 
      stage('Start containers for testing') {
+        /*
               when {
                      anyOf {
                          branch 'master'
@@ -386,20 +387,20 @@ pipeline {
                          "cloud-config-container",
                          "service-discovery-container",
                          "zipkin-container"
-                     )
+                        )
 
                      foreach ($container in $containers) {
                          docker stop $container 2>$null
                          docker rm $container 2>$null
-                     }
+                        }
 
                      docker network rm ecommerce-test 2>$null
                      throw "Failed to start containers"
-                 }
+                    }
                  '''
-             }
-         }
-     }
+                }
+            }
+        }
 
 
 
@@ -531,7 +532,7 @@ pipeline {
            }
        }
 
-        /*
+        */
 
         stage('Deploy Common Config') {
             when { anyOf { branch 'stage'; branch 'master' } }
@@ -587,7 +588,7 @@ pipeline {
             }
         }
 
-        */
+        
 
     }
 
