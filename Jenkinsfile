@@ -119,21 +119,25 @@ pipeline {
             }
         }
 
-       stage('Build & Push Docker Images') {
-           when { anyOf { branch 'stage'; branch 'master' } }
-           steps {
-               withCredentials([string(credentialsId: "${DOCKER_CREDENTIALS_ID}", variable: 'docker_password')]) {
-                   bat "docker login -u ${DOCKERHUB_USER} -p ${docker_password}"
+/*
 
-                   script {
-                       SERVICES.split().each { service ->
-                           bat "docker build -t ${DOCKERHUB_USER}/${service}:${IMAGE_TAG} .\\${service}"
-                           bat "docker push ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}"
-                       }
-                   }
-               }
-           }
-       }
+        stage('Build & Push Docker Images') {
+            when { anyOf { branch 'stage'; branch 'master' } }
+            steps {
+                withCredentials([string(credentialsId: "${DOCKER_CREDENTIALS_ID}", variable: 'docker_password')]) {
+                    bat "docker login -u ${DOCKERHUB_USER} -p ${docker_password}"
+
+                    script {
+                        SERVICES.split().each { service ->
+                            bat "docker build -t ${DOCKERHUB_USER}/${service}:${IMAGE_TAG} .\\${service}"
+                            bat "docker push ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}"
+                        }
+                    }
+                }
+            }
+        }
+
+*/
 
         stage('E2E Tests') {
             when {

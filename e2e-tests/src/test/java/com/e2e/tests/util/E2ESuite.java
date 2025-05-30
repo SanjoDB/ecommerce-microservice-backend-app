@@ -75,10 +75,11 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
+                    .withEnv("EUREKA_INSTANCE", "cloud-config-container")
                     .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
 
             // Servicios de negocio (compose.yml)
-            apiGatewayContainer = new GenericContainer<>("sanjodb/api-gateway-service:prod")
+            apiGatewayContainer = new GenericContainer<>("sanjodb/api-gateway:prod")
                     .withNetwork(network)
                     .withNetworkAliases("api-gateway-container")
                     .withExposedPorts(8080)
@@ -90,6 +91,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
+                    .withEnv("EUREKA_INSTANCE", "api-gateway-container")
                     .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
 
             orderServiceContainer = new GenericContainer<>("sanjodb/order-service:prod")
@@ -101,6 +103,7 @@ public class E2ESuite {
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
+                    .withEnv("EUREKA_INSTANCE", "order-service-container")
                     .waitingFor(Wait.forHttp("/order-service/actuator/health").forStatusCode(200));
 
             paymentServiceContainer = new GenericContainer<>("sanjodb/payment-service:prod")
@@ -115,6 +118,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
+                    .withEnv("EUREKA_INSTANCE", "payment-service-container")
                     .waitingFor(Wait.forHttp("/payment-service/actuator/health").forStatusCode(200));
 
             productServiceContainer = new GenericContainer<>("sanjodb/product-service:prod")
@@ -129,6 +133,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
+                    .withEnv("EUREKA_INSTANCE", "product-service-container")
                     .waitingFor(Wait.forHttp("/product-service/actuator/health").forStatusCode(200));
 
             shippingServiceContainer = new GenericContainer<>("sanjodb/shipping-service:prod")
@@ -143,6 +148,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
+                    .withEnv("EUREKA_INSTANCE", "shipping-service-container")
                     .waitingFor(Wait.forHttp("/shipping-service/actuator/health").forStatusCode(200));
 
             userServiceContainer = new GenericContainer<>("sanjodb/user-service:prod")
@@ -157,6 +163,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
+                    .withEnv("EUREKA_INSTANCE", "user-service-container")
                     .waitingFor(Wait.forHttp("/user-service/actuator/health").forStatusCode(200));
 
             favouriteServiceContainer = new GenericContainer<>("sanjodb/favourite-service:prod")
@@ -171,6 +178,7 @@ public class E2ESuite {
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
+                    .withEnv("EUREKA_INSTANCE", "favourite-service-container")
                     .waitingFor(Wait.forHttp("/favourite-service/actuator/health").forStatusCode(200));
 
             // Arranque ordenado: primero infraestructura, luego servicios de negocio
