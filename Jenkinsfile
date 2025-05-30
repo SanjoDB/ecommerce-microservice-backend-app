@@ -552,7 +552,7 @@ pipeline {
 
                 bat "kubectl apply -f k8s\\cloud-config -n ${K8S_NAMESPACE}"
                 bat "kubectl set image deployment/cloud-config cloud-config=${DOCKERHUB_USER}/cloud-config:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
-                bat "kubectl rollout status deployment/cloud-config -n ${K8S_NAMESPACE} --timeout=350s"
+                bat "kubectl rollout status deployment/cloud-config -n ${K8S_NAMESPACE} --timeout=500s"
             }
         }
 
