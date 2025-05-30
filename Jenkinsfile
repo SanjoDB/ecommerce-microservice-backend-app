@@ -157,10 +157,9 @@ pipeline {
 
 */
 
+/*
 
-
-     stage('Start containers for testing') {
-        /*
+    stage('Start containers for testing') {
               when {
                      anyOf {
                          branch 'master'
