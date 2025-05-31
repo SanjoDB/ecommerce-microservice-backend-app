@@ -336,35 +336,6 @@ Las pruebas E2E simulan flujos completos de usuario a través de varios microser
 Esta prueba simula el registro completo de un usuario, enviando un payload complejo que incluye credenciales y dirección. Se valida que el endpoint acepte la petición y retorne un código de éxito.
 ```java
 @Test
-void shouldSaveUser(){
-    Map<String, Object> credentialPayload = Map.of(
-            "username", "jacotaco",
-            "password", "12345678",
-            "roleBasedAuthority", "ROLE_USER",
-            "isEnabled", true,
-            "isAccountNonExpired", true,
-            "isAccountNonLocked", true,
-            "isCredentialsNonExpired", true
-    );
-    Map<String, Object> addressPayload = Map.of(
-            "fullAddress", "Calle 35 norte #6a abis 35",
-            "postalCode", "760001",
-            "city", "Cali"
-    );
-    Map<String, Object> userPayload = Map.of(
-            "firstName", "Darwin",
-            "lastName", "Lenis",
-            "imageUrl", "http://placeholder:200",
-            "email", "darpa@gmial.com",
-            "phone", "3218770876",
-            "addressDtos", List.of(addressPayload),
-            "credential", credentialPayload
-    );
-    ResponseEntity<String> response = restFacade.post(userServiceUrl + "/user-service/api/users",
-            userPayload,
-            String.class);
-    assertTrue(response.getStatusCode().is2xxSuccessful(), "Unexpected status code: " + response.getStatusCode());
-}
 void shouldSaveUser() {
     Map<String, Object> credentialPayload = Map.of(
             "username", "e2euser",
@@ -465,6 +436,7 @@ El desarrollo comenzó con la configuración de un entorno local que permitiera 
 
 La configuración inicial requirió la creación de un archivo Core que definiera los microservicios de infraestructura y soporte: service-discovery (Eureka Server), cloud-config (Configuration Server) y un Docker Compose que definiera cada uno de los 8 microservicios del proyecto: api-gateway, product-service, user-service, order-service, payment-service, shipping-service, favourite-service y proxy-client. Cada servicio fue configurado con sus respectivos puertos, variables de entorno y dependencias específicas.
 
+![alt text](images/image_core_yml.png)
 ![alt text](images/image_compose_yml.png)
 
 La estructura del core.yml y compose.yml incluyen la definición de redes internas que permiten la comunicación entre servicios, volúmenes persistentes para datos que requieren permanencia, y la configuración de healthchecks para garantizar que los servicios dependientes no inicien hasta que sus dependencias estén completamente operativas.
@@ -737,21 +709,21 @@ Los resultados de las pruebas de carga con Locust muestran el comportamiento del
 
 **Favourite Service**
 
-En las pruebas de carga, el favourite-service mostró un rendimiento muy aceptable. El tiempo de respuesta promedio fue de 79.05 ms, con un percentil 95 del tiempo de respuesta en 110 ms, lo que indica que el 95% de las peticiones fueron atendidas en menos de ese tiempo. La tasa de solicitudes por segundo (RPS) se mantuvo en 5.0, sin registrar errores. Esto demuestra que el servicio se comporta de manera estable y eficiente bajo condiciones normales de uso.
+En las pruebas de carga, el favourite-service mostró un rendimiento muy aceptable. El tiempo de respuesta promedio fue de 520.36 ms, con un percentil 95 del tiempo de respuesta en 110 ms, lo que indica que el 95% de las peticiones fueron atendidas en menos de ese tiempo. La tasa de solicitudes por segundo (RPS) se mantuvo entre 2.0 y 2.5, sin registrar errores. Esto demuestra que el servicio se comporta de manera estable y eficiente bajo condiciones normales de uso.
 
 ![alt text](images/image_favourite_load.png)
 ![alt text](images/total_requests_per_second_favourite_load.png)
 
 **Order Service**
 
-Este servicio presentó el mejor rendimiento en las pruebas de carga. Con un tiempo de respuesta promedio de apenas 9.20 ms y un percentil 95 de 12 ms, el order-service maneja las peticiones con gran rapidez. Su RPS fue de 5.4, también sin errores. Estas métricas reflejan una alta eficiencia y bajo consumo de recursos, posicionándolo como el servicio más optimizado de los tres en este escenario.
+Este servicio presentó el mejor rendimiento en las pruebas de carga. Con un tiempo de respuesta promedio de apenas 21.37 ms y un percentil 95 de 12 ms, el order-service maneja las peticiones con gran rapidez. Su RPS fue alrededor de 2.5, también sin errores. Estas métricas reflejan una alta eficiencia y bajo consumo de recursos, posicionándolo como el servicio más optimizado de los tres en este escenario.
 
 ![alt text](images/image_order_load.png)
 ![alt text](images/total_requests_per_second_order_load.png)
 
 **Payment Service**
 
-El payment-service mostró tiempos de respuesta notablemente más altos comparado con los otros microservicios. El promedio fue de 216.49 ms, con un percentil 95 de 370 ms. Aunque la RPS fue aceptable (5.3) y no se registraron errores, estos valores indican un rendimiento más limitado, posiblemente por operaciones complejas o mayor uso de recursos. Si bien es funcional bajo carga normal, no es tan eficiente como los otros.
+El payment-service mostró tiempos de respuesta notablemente más altos comparado con los otros microservicios. El promedio fue de 330.83 ms, con un percentil 95 de 370 ms. Aunque la RPS fue alrededor de 2.5 y no se registraron errores, estos valores indican un rendimiento más limitado, posiblemente por operaciones complejas o mayor uso de recursos. Si bien es funcional bajo carga normal, no es tan eficiente como los otros.
 
 ![alt text](images/image_payment_load.png)
 ![alt text](images/total_requests_per_second_payment_load.png)
@@ -766,21 +738,21 @@ Las pruebas de estrés revelan el comportamiento del sistema bajo alta carga, id
 
 **Favourite Service**
 
-Bajo condiciones de alta carga, el favourite-service mantuvo un rendimiento sobresaliente. Logró una tasa de 25.1 solicitudes por segundo, con un tiempo de respuesta promedio de 31.35 ms y percentil 95 de 76 ms, sin errores reportados. Esto demuestra que el servicio escala de forma excelente, siendo robusto y confiable incluso en escenarios exigentes.
+Bajo condiciones de alta carga, el favourite-service mantuvo un rendimiento sobresaliente. Logró una tasa de 5 solicitudes por segundo, con un tiempo de respuesta promedio de 64.9 ms y percentil 95 de 76 ms, sin errores reportados. Esto demuestra que el servicio escala de forma excelente, siendo robusto y confiable incluso en escenarios exigentes.
 
 ![alt text](images/image_favourite_stress.png)
 ![alt text](images/total_requests_per_second_favourite_stress.png)
 
 **Order Service**
 
-El order-service también mostró una capacidad de escalabilidad excepcional en las pruebas de estrés. Alcanzó una tasa de 23.6 RPS con un tiempo de respuesta promedio bajísimo de 3.31 ms y percentil 95 de 7 ms. Estos valores confirman que el servicio es extremadamente rápido y eficiente incluso con un alto volumen de peticiones simultáneas, ideal para entornos de alta demanda.
+El order-service también mostró una capacidad de escalabilidad excepcional en las pruebas de estrés. Alcanzó una tasa de 5.5 RPS con un tiempo de respuesta promedio bajísimo de 9.31 ms y percentil 95 de 7 ms. Estos valores confirman que el servicio es extremadamente rápido y eficiente incluso con un alto volumen de peticiones simultáneas, ideal para entornos de alta demanda.
 
 ![alt text](images/image_order_stress.png)
 ![alt text](images/total_requests_per_second_order_stress.png)
 
 **Payment Service**
 
-En contraste, el payment-service evidenció limitaciones importantes bajo estrés. Aunque alcanzó 14.7 RPS, su tiempo de respuesta promedio se disparó a 1804.94 ms, con un percentil 95 de 5200 ms y un pico máximo de 7070 ms, sin errores. Aunque funcional, su rendimiento cae considerablemente bajo carga alta, lo que lo convierte en el principal candidato para optimización o escalamiento.
+En contraste, el payment-service evidenció limitaciones importantes bajo estrés. Aunque alcanzó 5.0 RPS, su tiempo de respuesta promedio se disparó a 646.35 ms, con un percentil 95 de 5200 ms y un pico máximo de 1779 ms, sin errores. Aunque funcional, su rendimiento cae considerablemente bajo carga alta, lo que lo convierte en el principal candidato para optimización o escalamiento.
 
 ![alt text](images/image_payment_stress.png)
 ![alt text](images/total_requests_per_second_payment_stress.png)
