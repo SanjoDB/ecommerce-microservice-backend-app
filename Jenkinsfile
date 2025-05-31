@@ -34,7 +34,7 @@ pipeline {
                    script {
                        def profileConfig = [
                            master : ['prod', '-prod'],
-                           release: ['stage', '-stage']
+                           stage: ['stage', '-stage']
                        ]
                        def config = profileConfig.get(env.BRANCH_NAME, ['dev', '-dev'])
 
