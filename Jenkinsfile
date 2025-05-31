@@ -67,56 +67,16 @@ pipeline {
         }
 
         stage('Verify Tools') {
-                            steps {
-                                bat 'java -version'
-                                bat 'mvn -version'
-                                bat 'docker --version'
-                                bat 'kubectl config current-context'
-
-                            }
-                        }
-
-
-/*
-
-         stage('Unit Tests') {
-                    when {
-                        anyOf {
-                            branch 'dev'; branch 'master'; branch 'release'
-                            expression { env.BRANCH_NAME.startsWith('feature/') }
-                        }
-                    }
-                    steps {
-                        script {
-                            ['user-service', 'product-service'].each {
-                                bat "mvn test -pl ${it}"
-                            }
-                        }
-                    }
-                }
-
-
-        stage('Integration Tests') {
-            when {
-                anyOf {
-                    branch 'master'
-                    expression { env.BRANCH_NAME.startsWith('feature/') }
-                    allOf { not { branch 'master' }; not { branch 'release' } }
-                }
-            }
             steps {
-                script {
-                    ['user-service', 'product-service'].each {
-                        bat "mvn verify -pl ${it}"
-                    }
-                }
+                bat 'java -version'
+                bat 'mvn -version'
+                bat 'docker --version'
+                bat 'kubectl config current-context'
             }
         }
 
-*/
-
         stage('Build & Package') {
-            when { anyOf { branch 'master'; branch 'stage' } }
+            when { anyOf { branch 'master'; branch 'stage'; branch 'dev' } }
             steps {
                 bat "mvn clean package -DskipTests"
             }
@@ -138,7 +98,41 @@ pipeline {
             }
         }
 
-/*
+         stage('Unit Tests') {
+                    when {
+                        anyOf {
+                            branch 'dev'; branch 'master'; branch 'release'
+                            expression { env.BRANCH_NAME.startsWith('feature/') }
+                        }
+                    }
+                    steps {
+                        script {
+                            ['user-service', 'product-service'].each {
+                                bat "mvn test -pl ${it}"
+                            }
+                        }
+                        junit '**/target/surefire-reports/*.xml'
+                    }
+                }
+
+
+        stage('Integration Tests') {
+            when {
+                anyOf {
+                    branch 'master'
+                    expression { env.BRANCH_NAME.startsWith('feature/') }
+                    allOf { not { branch 'master' }; not { branch 'release' } }
+                }
+            }
+            steps {
+                script {
+                    ['user-service', 'product-service'].each {
+                        bat "mvn verify -pl ${it}"
+                    }
+                }
+                junit '**/target/failsafe-reports/TEST-*.xml'
+            }
+        }
 
         stage('E2E Tests') {
             when {
@@ -150,12 +144,9 @@ pipeline {
             }
             steps {
                 bat "mvn verify -pl e2e-tests"
+                junit 'e2e-tests/target/failsafe-reports/*.xml'
             }
         }
-
-*/
-
-/*
 
     stage('Start containers for testing') {
               when {
@@ -414,38 +405,46 @@ pipeline {
            steps {
                script {
                    bat '''
-
                    echo 🚀 Starting Locust for order-service...
+
+                   if not exist locust-reports mkdir locust-reports
+
                    docker run --rm --network ecommerce-test ^
+                     -v "%CD%/locust-reports:/mnt/locust" ^
                      -v "%CD%\\locust:/mnt" ^
                      -v "%CD%\\locust-results:/app" ^
                      sanjodb/locust:%IMAGE_TAG% ^
                      -f /mnt/test/order-service/locustfile.py ^
                      --host http://order-service-container:8300 ^
                      --headless -u 5 -r 1 -t 1m ^
-                     --csv order-service-stats --csv-full-history
+                     --only-summary ^
+                     --html /mnt/locust/order-service-report.html
 
                    echo 🚀 Starting Locust for payment-service...
 
                    docker run --rm --network ecommerce-test ^
+                     -v "%CD%/locust-reports:/mnt/locust" ^
                      -v "%CD%\\locust:/mnt" ^
                      -v "%CD%\\locust-results:/app" ^
                      sanjodb/locust:%IMAGE_TAG% ^
                      -f /mnt/test/payment-service/locustfile.py ^
                      --host http://payment-service-container:8400 ^
                      --headless -u 5 -r 1 -t 1m ^
-                     --csv payment-service-stats --csv-full-history
+                     --only-summary ^
+                     --html /mnt/locust/payment-service-report.html
 
                    echo 🚀 Starting Locust for favourite-service...
 
                    docker run --rm --network ecommerce-test ^
+                     -v "%CD%/locust-reports:/mnt/locust" ^
                      -v "%CD%\\locust:/mnt" ^
                      -v "%CD%\\locust-results:/app" ^
                      sanjodb/locust:%IMAGE_TAG% ^
                      -f /mnt/test/favourite-service/locustfile.py ^
                      --host http://favourite-service-container:8800 ^
                      --headless -u 5 -r 1 -t 1m ^
-                     --csv favourite-service-stats --csv-full-history
+                     --only-summary ^
+                     --html /mnt/locust/favourite-service-report.html
 
                    echo ✅ Tests completed
                    '''
@@ -466,31 +465,37 @@ pipeline {
                    echo 🔥 Starting Locust for stress testing...
 
                    docker run --rm --network ecommerce-test ^
+                   -v "%CD%/locust-reports:/mnt/locust" ^
                    -v "%CD%\\locust:/mnt" ^
                    -v "%CD%\\locust-results:/app" ^
                    sanjodb/locust:%IMAGE_TAG% ^
                    -f /mnt/test/order-service/locustfile.py ^
                    --host http://order-service-container:8300 ^
                    --headless -u 10 -r 1 -t 1m ^
-                   --csv order-service-stress --csv-full-history
+                   --only-summary ^
+                   --html /mnt/locust/stress-order-service-report.html
 
                    docker run --rm --network ecommerce-test ^
+                   -v "%CD%/locust-reports:/mnt/locust" ^
                    -v "%CD%\\locust:/mnt" ^
                    -v "%CD%\\locust-results:/app" ^
                    sanjodb/locust:%IMAGE_TAG% ^
                    -f /mnt/test/payment-service/locustfile.py ^
                    --host http://payment-service-container:8400 ^
                    --headless -u 10 -r 1 -t 1m ^
-                   --csv payment-service-stress --csv-full-history
+                   --only-summary ^
+                   --html /mnt/locust/stress-payment-service-report.html
 
                    docker run --rm --network ecommerce-test ^
+                   -v "%CD%/locust-reports:/mnt/locust" ^
                    -v "%CD%\\locust:/mnt" ^
                    -v "%CD%\\locust-results:/app" ^
                    sanjodb/locust:%IMAGE_TAG% ^
                    -f /mnt/test/favourite-service/locustfile.py ^
                    --host http://favourite-service-container:8800 ^
                    --headless -u 10 -r 1 -t 1m ^
-                   --csv favourite-service-stress --csv-full-history
+                   --only-summary ^
+                   --html /mnt/locust/stress-favourite-service-report.html
 
                    echo ✅ Stress tests completed
                    '''
@@ -529,17 +534,15 @@ pipeline {
            }
        }
 
-        */
-
         stage('Deploy Common Config') {
-            when { anyOf { branch 'stage'; branch 'master' } }
+            when { anyOf { branch 'master' } }
             steps {
                 bat "kubectl apply -f k8s\\common-config.yaml -n ${K8S_NAMESPACE}"
             }
         }
 
         stage('Deploy Core Services') {
-            when { anyOf { branch 'stage'; branch 'master' } }
+            when { anyOf { branch 'master' } }
             steps {
                 bat "kubectl apply -f k8s\\zipkin -n ${K8S_NAMESPACE}"
                 bat "kubectl rollout status deployment/zipkin -n ${K8S_NAMESPACE} --timeout=200s"
@@ -553,6 +556,8 @@ pipeline {
                 bat "kubectl rollout status deployment/cloud-config -n ${K8S_NAMESPACE} --timeout=500s"
             }
         }
+
+/*
 
         stage('Deploy Microservices') {
             when { anyOf { branch 'master'; } }
@@ -570,19 +575,20 @@ pipeline {
             }
         }
 
-        stage('Generate Release Notes') {
+*/
+
+        stage('Generate and Archive Release Notes') {
             when {
-                expression { params.GENERATE_RELEASE_NOTES }
+                branch 'master'
             }
             steps {
-                script {
-                    echo "=== GENERATE RELEASE NOTES ==="
-                    generateReleaseNotes()
-                }
+                bat '''
+                echo "📝 Generando Release Notes con convco..."
+                convco changelog > RELEASE_NOTES.md
+                '''
+                archiveArtifacts artifacts: 'RELEASE_NOTES.md', fingerprint: true
             }
         }
-
-        
 
     }
 
@@ -596,8 +602,14 @@ pipeline {
 
                 if (env.BRANCH_NAME == 'master') {
                     echo "🚀 Production deployment completed successfully!"
-                } else if (env.BRANCH_NAME == 'release') {
+                } else if (env.BRANCH_NAME == 'stage') {
                     echo "🎯 Staging deployment completed successfully!"
+                    publishHTML([
+                        reportDir: 'locust-reports',
+                        reportFiles: 'order-service-report.html, payment-service-report.html, favourite-service-report.html',
+                        reportName: 'Locust Stress Test Reports',
+                        keepAll: true
+                    ])
                 } else {
                     echo "🔧 Development tests completed successfully!"
                 }
@@ -617,154 +629,6 @@ pipeline {
                 echo "🔍 Some tests may have failed. Review test reports."
             }
         }
-        always {
-            script {
-                // Archive release notes if they were generated
-                if (params.GENERATE_RELEASE_NOTES) {
-                    archiveArtifacts artifacts: 'release-notes-*.md', allowEmptyArchive: true
-                }
-            }
-        }
+        
     }
-}
-
-def generateReleaseNotes() {
-    echo "Generating automatic Release Notes..."
-
-    try {
-        def buildTag = params.BUILD_TAG ?: env.BUILD_ID
-        def releaseNotesFile = "release-notes-${buildTag}.md"
-
-        // Get git information (Windows compatible)
-        def gitCommit = bat(returnStdout: true, script: 'git rev-parse HEAD').trim()
-        def gitBranch = env.BRANCH_NAME ?: 'unknown'
-        def buildDate = new Date().format('yyyy-MM-dd HH:mm:ss')
-
-        // Get recent commits (Windows compatible)
-        def recentCommits = ""
-        try {
-           recentCommits = bat(returnStdout: true, script: 'git log --oneline --since="3 days ago" -n 10').trim()
-            if (!recentCommits) {
-                recentCommits = "No recent commits found in the last 3 days"
-            }
-        } catch (Exception e) {
-            recentCommits = "Could not retrieve recent commits: ${e.message}"
-        }
-
-        // Determine deployment status based on branch
-        def deploymentStatus = ""
-        switch(env.BRANCH_NAME) {
-            case 'master':
-                deploymentStatus = "✅ Successfully deployed to PRODUCTION environment"
-                break
-            case 'release':
-                deploymentStatus = "✅ Successfully deployed to STAGING environment"
-                break
-            default:
-                deploymentStatus = "✅ Tests completed for DEVELOPMENT environment"
-        }
-
-        def releaseNotes = """
-# Release Notes - Build ${buildTag}
-
-## Build Information
-- **Build Number**: ${env.BUILD_NUMBER}
-- **Build Tag**: ${buildTag}
-- **Branch**: ${gitBranch}
-- **Environment**: ${env.SPRING_PROFILE}
-- **Date**: ${buildDate}
-- **Git Commit**: ${gitCommit}
-- **Jenkins URL**: ${env.BUILD_URL}
-
-## Deployed Services (${env.SPRING_PROFILE} environment)
-${SERVICES.split().collect { "- ${it}" }.join('\n')}
-
-## Additional Infrastructure
-- zipkin (monitoring)
-- Kubernetes namespace: ${env.K8S_NAMESPACE}
-
-## Test Results Summary
-- **Unit Tests**: ${shouldRunTests() ? 'EXECUTED ✅' : 'SKIPPED ⏭️'}
-- **Integration Tests**: ${shouldRunIntegrationTests() ? 'EXECUTED ✅' : 'SKIPPED ⏭️'}
-- **E2E Tests**: ${shouldRunE2ETests() ? 'EXECUTED ✅' : 'SKIPPED ⏭️'}
-
-## Recent Changes
-```
-${recentCommits}
-```
-
-## Docker Images Built
-${env.BRANCH_NAME == 'master' ? SERVICES.split().collect { "- ${DOCKERHUB_USER}/${it}:${env.IMAGE_TAG}" }.join('\n') : 'No Docker images built for this branch'}
-
-## Deployment Configuration
-- **Spring Profile**: ${env.SPRING_PROFILE}
-- **Image Tag**: ${env.IMAGE_TAG}
-- **Deployment Suffix**: ${env.DEPLOYMENT_SUFFIX}
-- **Kubernetes Namespace**: ${env.K8S_NAMESPACE}
-
-## Deployment Status
-${deploymentStatus}
-
-## Pipeline Execution Details
-- **Started**: ${new Date(currentBuild.startTimeInMillis).format('yyyy-MM-dd HH:mm:ss')}
-- **Duration**: ${currentBuild.durationString}
-- **Triggered by**: ${env.BUILD_CAUSE ?: 'Manual/SCM'}
-
----
-*Generated automatically by Jenkins Pipeline on ${buildDate}*
-*Pipeline: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}*
-"""
-
-        writeFile(file: releaseNotesFile, text: releaseNotes)
-
-        echo "✅ Release Notes generated successfully: ${releaseNotesFile}"
-        echo "📄 File will be save as artifact"
-
-        // Display summary in console
-        echo """
-=== RELEASE NOTES SUMMARY ===
-📦 Build: ${buildTag}
-🌿 Branch: ${gitBranch}
-🏷️ Environment: ${env.SPRING_PROFILE}
-📅 Date: ${buildDate}
-📁 File: ${releaseNotesFile}
-"""
-
-    } catch (Exception e) {
-        echo "⚠️ Error generating Release Notes: ${e.message}"
-        echo "Pipeline will continue without Release Notes"
-
-        // Create minimal release notes
-        def fallbackFile = "release-notes-${params.BUILD_TAG ?: env.BUILD_ID}-minimal.md"
-        def minimalNotes = """
-# Release Notes - Build ${params.BUILD_TAG ?: env.BUILD_ID}
-
-**Error**: Could not generate complete release notes due to: ${e.message}
-
-## Basic Information
-- Build Number: ${env.BUILD_NUMBER}
-- Branch: ${env.BRANCH_NAME}
-- Environment: ${env.SPRING_PROFILE}
-- Date: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
-
-Pipeline executed successfully despite release notes generation error.
-"""
-        writeFile(file: fallbackFile, text: minimalNotes)
-        echo "📝 Minimal release notes created: ${fallbackFile}"
-    }
-}
-
-// Helper functions to determine test execution
-def shouldRunTests() {
-    return env.BRANCH_NAME in ['dev', 'master', 'release'] || env.BRANCH_NAME.startsWith('feature/')
-}
-
-def shouldRunIntegrationTests() {
-    return env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('feature/') ||
-           (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'release')
-}
-
-def shouldRunE2ETests() {
-    return env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('feature/') ||
-           (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'release')
 }
