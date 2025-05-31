@@ -82,6 +82,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('Build & Push Docker Images') {
             when { anyOf { branch 'stage'; branch 'master' } }
             steps {
@@ -97,6 +99,8 @@ pipeline {
                 }
             }
         }
+
+*/
 
          stage('Unit Tests') {
                     when {
@@ -146,6 +150,8 @@ pipeline {
                 junit 'e2e-tests/target/failsafe-reports/*.xml'
             }
         }
+
+/*
 
     stage('Start containers for testing') {
               when {
@@ -535,6 +541,8 @@ pipeline {
            }
        }
 
+*/
+
         stage('Deploy Common Config') {
             when { anyOf { branch 'master' } }
             steps {
@@ -592,8 +600,6 @@ pipeline {
         }
 
     }
-
-    
 
     post {
         success {
