@@ -101,7 +101,7 @@ pipeline {
          stage('Unit Tests') {
                     when {
                         anyOf {
-                            branch 'dev'; branch 'master'; branch 'release'
+                            branch 'dev'; branch 'stage'
                             expression { env.BRANCH_NAME.startsWith('feature/') }
                         }
                     }
@@ -119,7 +119,7 @@ pipeline {
         stage('Integration Tests') {
             when {
                 anyOf {
-                    branch 'master'
+                    branch 'dev'; branch 'stage';
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                     allOf { not { branch 'master' }; not { branch 'release' } }
                 }
@@ -137,9 +137,8 @@ pipeline {
         stage('E2E Tests') {
             when {
                 anyOf {
-                    branch 'master'
+                    branch 'stage';
                     expression { env.BRANCH_NAME.startsWith('feature/') }
-                    allOf { not { branch 'master' }; not { branch 'release' } }
                 }
             }
             steps {
@@ -151,7 +150,7 @@ pipeline {
     stage('Start containers for testing') {
               when {
                      anyOf {
-                         branch 'master'
+                         branch 'stage'
                          expression { env.BRANCH_NAME.startsWith('feature/') }
                      }
                  }
@@ -398,7 +397,7 @@ pipeline {
 
            when {
                 anyOf {
-                    branch 'master'
+                    branch 'stage'
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
@@ -407,7 +406,9 @@ pipeline {
                    bat '''
                    echo 🚀 Starting Locust for order-service...
 
-                   if not exist locust-reports mkdir locust-reports
+                   if not exist locust-reports (
+                        mkdir locust-reports
+                    )
 
                    docker run --rm --network ecommerce-test ^
                      -v "%CD%/locust-reports:/mnt/locust" ^
@@ -455,7 +456,7 @@ pipeline {
        stage('Run Stress Tests with Locust') {
            when {
                 anyOf {
-                    branch 'master'
+                    branch 'stage'
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
@@ -508,7 +509,7 @@ pipeline {
        stage('Stop and remove containers') {
                 when {
                        anyOf {
-                           branch 'master'
+                           branch 'stage'
                            expression { env.BRANCH_NAME.startsWith('feature/') }
                        }
                 }

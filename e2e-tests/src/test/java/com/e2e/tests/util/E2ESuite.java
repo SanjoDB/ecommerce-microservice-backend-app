@@ -35,8 +35,6 @@ public class E2ESuite {
     protected static GenericContainer<?> cloudConfigContainer;
 
     // Servicios de negocio (compose.yml)
-    protected static GenericContainer<?> apiGatewayContainer;
-    protected static GenericContainer<?> proxyClientContainer;
     protected static GenericContainer<?> orderServiceContainer;
     protected static GenericContainer<?> paymentServiceContainer;
     protected static GenericContainer<?> productServiceContainer;
@@ -79,27 +77,11 @@ public class E2ESuite {
                     .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
 
             // Servicios de negocio (compose.yml)
-            apiGatewayContainer = new GenericContainer<>("sanjodb/api-gateway:prod")
-                    .withNetwork(network)
-                    .withNetworkAliases("api-gateway-container")
-                    .withExposedPorts(8080)
-                    .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "api-gateway-container")
-                    .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
-                    .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
-                    .withEnv("EUREKA_CLIENT_REGION", "default")
-                    .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
-                    .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
-                    .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
-                    .withEnv("EUREKA_INSTANCE", "api-gateway-container")
-                    .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200));
-
             orderServiceContainer = new GenericContainer<>("sanjodb/order-service:prod")
                     .withNetwork(network)
                     .withNetworkAliases("order-service-container")
                     .withExposedPorts(8300)
                     .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "order-service-container")
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://service-discovery-container:8761/eureka/")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
@@ -111,7 +93,6 @@ public class E2ESuite {
                     .withNetworkAliases("payment-service-container")
                     .withExposedPorts(8400)
                     .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "payment-service-container")
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("EUREKA_CLIENT_REGION", "default")
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
@@ -126,7 +107,6 @@ public class E2ESuite {
                     .withNetworkAliases("product-service-container")
                     .withExposedPorts(8500)
                     .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "product-service-container")
                     .withEnv("EUREKA_CLIENT_REGION", "default")
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
                     .withEnv("EUREKA_CLIENT_SERVICEURL_MYZONE", "http://service-discovery-container:8761/eureka")
@@ -141,7 +121,6 @@ public class E2ESuite {
                     .withNetworkAliases("shipping-service-container")
                     .withExposedPorts(8600)
                     .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "shipping-service-container")
                     .withEnv("SPRING_CONFIG_IMPORT", "optional:configserver:http://cloud-config-container:9296")
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("EUREKA_CLIENT_REGION", "default")
@@ -156,7 +135,6 @@ public class E2ESuite {
                     .withNetworkAliases("user-service-container")
                     .withExposedPorts(8700)
                     .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "user-service-container")
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("EUREKA_CLIENT_REGION", "default")
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
@@ -171,7 +149,6 @@ public class E2ESuite {
                     .withNetworkAliases("favourite-service-container")
                     .withExposedPorts(8800)
                     .withEnv("SPRING_PROFILES_ACTIVE", "dev")
-                    .withEnv("EUREKA_INSTANCE", "favourite-service-container")
                     .withEnv("SPRING_ZIPKIN_BASE-URL", "http://zipkin:9411")
                     .withEnv("EUREKA_CLIENT_REGION", "default")
                     .withEnv("EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT", "myzone")
@@ -184,7 +161,6 @@ public class E2ESuite {
             // Arranque ordenado: primero infraestructura, luego servicios de negocio
             Startables.deepStart(Stream.of(zipkinContainer, serviceDiscoveryContainer)).join();
             Startables.deepStart(Stream.of(cloudConfigContainer)).join();
-            Startables.deepStart(Stream.of(apiGatewayContainer)).join();
             Startables.deepStart(Stream.of(orderServiceContainer)).join();
             Startables.deepStart(Stream.of(paymentServiceContainer)).join();
             Startables.deepStart(Stream.of(productServiceContainer)).join();
@@ -200,7 +176,6 @@ public class E2ESuite {
                 "payment.service.url", "http://" + paymentServiceContainer.getHost() + ":" + paymentServiceContainer.getMappedPort(8400),
                 "favourite.service.url", "http://" + favouriteServiceContainer.getHost() + ":" + favouriteServiceContainer.getMappedPort(8800),
                 "shipping.service.url", "http://" + shippingServiceContainer.getHost() + ":" + shippingServiceContainer.getMappedPort(8600),
-                "api.gateway.url", "http://" + apiGatewayContainer.getHost() + ":" + apiGatewayContainer.getMappedPort(8080),
                 "service.discovery.url", "http://" + serviceDiscoveryContainer.getHost() + ":" + serviceDiscoveryContainer.getMappedPort(8761),
                 "cloud.config.url", "http://" + cloudConfigContainer.getHost() + ":" + cloudConfigContainer.getMappedPort(9296),
                 "zipkin.url", "http://" + zipkinContainer.getHost() + ":" + zipkinContainer.getMappedPort(9411)
