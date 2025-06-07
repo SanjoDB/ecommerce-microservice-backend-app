@@ -589,8 +589,6 @@ pipeline {
            }
        }
 
-*/
-
         stage('Deploy Common Config') {
             when { anyOf { branch 'master' } }
             steps {
@@ -629,6 +627,8 @@ pipeline {
                 }
             }
         }
+
+*/
 
         stage('Generate and Archive Release Notes') {
             when {
