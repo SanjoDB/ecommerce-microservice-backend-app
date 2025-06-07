@@ -82,6 +82,54 @@ pipeline {
             }
         }
 
+        stage('Run SonarQube Analysis') {
+            when { branch 'master' }
+            tools {
+                jdk 'JDK 17'
+            }
+            environment {
+                JAVA_HOME = tool 'JDK 17'
+                PATH = "${JAVA_HOME}/bin:${env.PATH}"
+                scannerHome = tool 'lil-sonar-tool'
+            }
+            steps {
+                script {
+                    def javaServices = [
+                        'api-gateway',
+                        'cloud-config',
+                        'favourite-service',
+                        'order-service',
+                        'payment-service',
+                        'product-service',
+                        'proxy-client',
+                        'service-discovery',
+                        'shipping-service',
+                        'user-service',
+                        'e2e-tests'
+                    ]
+
+                    withSonarQubeEnv(credentialsId: 'sonarqube_password', installationName: 'lil sonar installation') {
+                        javaServices.each { service ->
+                            dir(service) {
+                                bat "${scannerHome}/bin/sonar-scanner " +
+                                "-Dsonar.projectKey=${service} " +
+                                "-Dsonar.projectName=${service} " +
+                                '-Dsonar.sources=src ' +
+                                '-Dsonar.java.binaries=target/classes'
+                            }
+                        }
+
+                        dir('locust') {
+                            bat "${scannerHome}/bin/sonar-scanner " +
+                            '-Dsonar.projectKey=locust ' +
+                            '-Dsonar.projectName=locust ' +
+                            '-Dsonar.sources=test'
+                        }
+                    }
+                }
+            }
+        }
+
 /*
 
         stage('Build & Push Docker Images') {
@@ -138,6 +186,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('E2E Tests') {
             when {
                 anyOf {
@@ -150,8 +200,6 @@ pipeline {
                 junit 'e2e-tests/target/failsafe-reports/*.xml'
             }
         }
-
-/*
 
     stage('Start containers for testing') {
               when {
@@ -566,8 +614,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('Deploy Microservices') {
             when { anyOf { branch 'master'; } }
             steps {
@@ -583,8 +629,6 @@ pipeline {
                 }
             }
         }
-
-*/
 
         stage('Generate and Archive Release Notes') {
             when {
