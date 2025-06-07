@@ -82,6 +82,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('Run SonarQube Analysis') {
             when { branch 'master' }
             tools {
@@ -126,6 +128,61 @@ pipeline {
                             '-Dsonar.sources=test'
                         }
                     }
+                }
+            }
+        }
+
+*/
+
+        stage('Trivy Vulnerability Scan & Report') {
+            when { branch 'stage' }
+            environment {
+                TRIVY_PATH = 'C:/ProgramData/chocolatey/bin'
+            }
+            steps {
+                script {
+                    env.PATH = "${TRIVY_PATH};${env.PATH}"
+
+                    def services = [
+                        'api-gateway',
+                        'cloud-config',
+                        'favourite-service',
+                        'order-service',
+                        'payment-service',
+                        'product-service',
+                        'proxy-client',
+                        'service-discovery',
+                        'shipping-service',
+                        'user-service'
+                    ]
+
+                    bat """
+                    if not exist trivy-reports (
+                        mkdir trivy-reports
+                    )
+                    """
+
+                    services.each { service ->
+                        def reportPath = "trivy-reports\\${service}.html"
+
+                        echo "🔍 Escaneando imagen ${IMAGE_TAG} con Trivy para ${service}..."
+                        bat """
+                        trivy image --format template ^
+                            --template "@C:/ProgramData/chocolatey/lib/trivy/tools/contrib/html.tpl" ^
+                            --severity HIGH,CRITICAL ^
+                            -o ${reportPath} ^
+                            ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}
+                        """
+                    }
+
+                    publishHTML(target: [
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'trivy-reports',
+                        reportFiles: '*.html',
+                        reportName: 'Trivy Scan Report'
+                    ])
                 }
             }
         }
