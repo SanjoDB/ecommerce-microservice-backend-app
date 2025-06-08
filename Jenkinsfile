@@ -646,6 +646,29 @@ pipeline {
            }
        }
 
+*/
+
+        stage('Waiting approval for deployment') {
+            when { branch 'master' }
+            steps {
+                script {
+                    emailext(
+                        to: '$DEFAULT_RECIPIENTS',
+                        subject: "Action Required: Approval Needed for Deploy of Build #${env.BUILD_NUMBER}",
+                        body: """\
+                        The build #${env.BUILD_NUMBER} for branch *${env.BRANCH_NAME}* has completed and is pending approval for deployment.
+                        Please review the changes and approve or abort
+                        You can access the build details here:
+                        ${env.BUILD_URL}
+                        """
+                    )
+                    input message: 'Approve deployment to production (kubernetes) ?', ok: 'Deploy'
+                }
+            }
+        }
+
+/*
+
         stage('Deploy Common Config') {
             when { anyOf { branch 'master' } }
             steps {
@@ -725,16 +748,18 @@ pipeline {
         }
         failure {
             script {
-                echo "❌ Pipeline failed for ${env.BRANCH_NAME} branch."
-                echo "🔍 Check the logs for details."
-                echo "📧 Notify the development team about the failure."
-
+                echo "❌ Pipeline failed for ${env.BRANCH_NAME} branch. Check the logs for details."
+                emailext(
+                    attachLog: true,
+                    body: '$DEFAULT_CONTENT',
+                    subject: '$DEFAULT_SUBJECT',
+                    to: '$DEFAULT_RECIPIENTS',
+                )
             }
         }
         unstable {
             script {
                 echo "⚠️ Pipeline completed with warnings for ${env.BRANCH_NAME} branch."
-                echo "🔍 Some tests may have failed. Review test reports."
             }
         }
         
