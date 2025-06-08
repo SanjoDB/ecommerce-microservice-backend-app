@@ -649,7 +649,7 @@ pipeline {
             steps {
                 script {
                     emailext(
-                        to: '$DEFAULT_RECIPIENTS',
+                        to: 'ingesoft.proyecto@gmail.com',
                         subject: "Action Required: Approval Needed for Deploy of Build #${env.BUILD_NUMBER}",
                         body: """\
                         The build #${env.BUILD_NUMBER} for branch *${env.BRANCH_NAME}* has completed and is pending approval for deployment.
@@ -747,9 +747,9 @@ pipeline {
                 echo "❌ Pipeline failed for ${env.BRANCH_NAME} branch. Check the logs for details."
                 emailext(
                     attachLog: true,
-                    body: '$DEFAULT_CONTENT',
-                    subject: '$DEFAULT_SUBJECT',
-                    to: '$DEFAULT_RECIPIENTS',
+                    body: 'Check the logs for ${env.BRANCH_NAME} branch for details.',
+                    subject: 'Pipeline failed.',
+                    to: 'ingesoft.proyecto@gmail.com',
                 )
             }
         }
