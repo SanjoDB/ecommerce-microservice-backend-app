@@ -132,8 +132,6 @@ pipeline {
             }
         }
 
-*/
-
         stage('Trivy Vulnerability Scan & Report') {
             when { branch 'stage' }
             environment {
@@ -186,8 +184,6 @@ pipeline {
                 }
             }
         }
-
-/*
 
         stage('Build & Push Docker Images') {
             when { anyOf { branch 'stage'; branch 'master' } }
@@ -667,14 +663,14 @@ pipeline {
             }
         }
 
-/*
-
         stage('Deploy Common Config') {
             when { anyOf { branch 'master' } }
             steps {
                 bat "kubectl apply -f k8s\\common-config.yaml -n ${K8S_NAMESPACE}"
             }
         }
+
+/*
 
         stage('Deploy Core Services') {
             when { anyOf { branch 'master' } }
