@@ -254,6 +254,8 @@ pipeline {
             }
         }
 
+*/
+
     stage('Start containers for testing') {
               when {
                      anyOf {
@@ -610,7 +612,57 @@ pipeline {
             }
         }
 
+        stage('OWASP ZAP Scan') {
+            when { branch 'stage' }
+            steps {
+                script {
+                    echo '==> Iniciando escaneos con OWASP ZAP'
 
+                    def targets = [
+                        [name: 'order-service', url: 'http://order-service-container:8300/order-service'],
+                        [name: 'payment-service', url: 'http://payment-service-container:8400/payment-service'],
+                        [name: 'product-service', url: 'http://product-service-container:8500/product-service'],
+                        [name: 'shipping-service', url: 'http://shipping-service-container:8600/shipping-service'],
+                        [name: 'user-service', url: 'http://user-service-container:8700/user-service'],
+                        [name: 'favourite-service', url: 'http://favourite-service-container:8800/favourite-service']
+                    ]
+
+                    bat 'if not exist zap-reports mkdir zap-reports'
+
+                    targets.each { service ->
+                        def reportFile = "report-${service.name}.html"
+                        echo "==> Escaneando ${service.name} (${service.url})"
+                        bat """
+                            docker run --rm ^
+                            --network ecommerce-test ^
+                            -v "%WORKSPACE%/zap-reports:/zap/wrk/zap-reports" ^
+                            zaproxy/zap-stable ^
+                            zap-full-scan.py ^
+                            -t ${service.url} ^
+                            -r zap-reports/${reportFile} ^
+                            -I
+                        """
+                    }
+                    bat 'dir zap-reports'
+                }
+            }
+        }
+
+        stage('Publicar Reportes de Seguridad') {
+            when { branch 'stage' }
+            steps {
+                echo '==> Publicando reportes HTML en interfaz Jenkins'
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'zap-reports',
+                    reportFiles: 'report-*.html',
+                    reportName: 'ZAP Security Reports',
+                    reportTitles: 'OWASP ZAP Full Scan Results'
+                ])
+            }
+        }
 
         stage('Stop and remove containers') {
             when {
@@ -640,6 +692,8 @@ pipeline {
                 }
             }
         }
+
+/*
 
         stage('Waiting approval for deployment') {
             when { branch 'master' }
