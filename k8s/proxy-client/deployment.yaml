@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: proxy-client
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8900"
+        prometheus.io/path: "/proxy-client/actuator/prometheus"
     spec:
       containers:
         - name: proxy-client
@@ -55,16 +59,16 @@ spec:
           # # Opcional: Liveness and Readiness Probes
           livenessProbe:
             httpGet:
-              path: /app/actuator/health
+              path: /proxy-client/actuator/health
               port: 8900
-            initialDelaySeconds: 60 
+            initialDelaySeconds: 180 
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /app/actuator/health
+              path: /proxy-client/actuator/health
               port: 8900
-            initialDelaySeconds: 30
+            initialDelaySeconds: 180
             periodSeconds: 10
             failureThreshold: 3
           volumeMounts:

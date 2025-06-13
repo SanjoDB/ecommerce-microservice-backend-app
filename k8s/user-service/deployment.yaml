@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: user-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8700"
+        prometheus.io/path: "/user-service/actuator/prometheus"
     spec:
       containers:
         - name: user-service
@@ -55,14 +59,14 @@ spec:
             httpGet:
               path: /user-service/actuator/health
               port: 8700
-            initialDelaySeconds: 60
+            initialDelaySeconds: 120
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /user-service/actuator/health
               port: 8700
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             periodSeconds: 10
             failureThreshold: 3
           volumeMounts:

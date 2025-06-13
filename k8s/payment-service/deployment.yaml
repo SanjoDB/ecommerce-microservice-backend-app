@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: payment-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8400"
+        prometheus.io/path: "/payment-service/actuator/prometheus"
     spec:
       containers:
         - name: payment-service
@@ -53,14 +57,14 @@ spec:
             httpGet:
               path: /payment-service/actuator/health
               port: 8400
-            initialDelaySeconds: 60 # Tiempo para que el servicio inicie completamente
+            initialDelaySeconds: 180 # Tiempo para que el servicio inicie completamente
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /payment-service/actuator/health
               port: 8400
-            initialDelaySeconds: 30
+            initialDelaySeconds: 180
             periodSeconds: 10
             failureThreshold: 3
           volumeMounts:

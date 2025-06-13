@@ -25,4 +25,3 @@ logging:
             rest: DEBUG
             jpa: DEBUG
             orm: DEBUG
-

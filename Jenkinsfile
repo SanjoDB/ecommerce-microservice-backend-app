@@ -27,35 +27,25 @@ pipeline {
         )
     }
 
-   stages {
+    stages {
 
-           stage('Init') {
-               steps {
-                   script {
-                       def profileConfig = [
-                           master : ['prod', '-prod'],
-                           stage: ['stage', '-stage']
-                       ]
-                       def config = profileConfig.get(env.BRANCH_NAME, ['dev', '-dev'])
-
-                       env.SPRING_PROFILES_ACTIVE = config[0]
-                       env.IMAGE_TAG = config[0]
-                       env.DEPLOYMENT_SUFFIX = config[1]
-
-                       echo "📦 Branch: ${env.BRANCH_NAME}"
-                       echo "🌱 Spring profile: ${env.SPRING_PROFILES_ACTIVE}"
-                       echo "🏷️ Image tag: ${env.IMAGE_TAG}"
-                       echo "📂 Deployment suffix: ${env.DEPLOYMENT_SUFFIX}"
-
-                   }
-               }
-           }
-
-        stage('Ensure Namespace') {
+        stage('Init') {
             steps {
                 script {
-                    def ns = env.K8S_NAMESPACE
-                    bat "kubectl get namespace ${ns} || kubectl create namespace ${ns}"
+                    def profileConfig = [
+                        master : ['prod', '-prod'],
+                        stage: ['stage', '-stage']
+                    ]
+                    def config = profileConfig.get(env.BRANCH_NAME, ['dev', '-dev'])
+
+                    env.SPRING_PROFILES_ACTIVE = config[0]
+                    env.IMAGE_TAG = config[0]
+                    env.DEPLOYMENT_SUFFIX = config[1]
+
+                    echo "📦 Branch: ${env.BRANCH_NAME}"
+                    echo "🌱 Spring profile: ${env.SPRING_PROFILES_ACTIVE}"
+                    echo "🏷️ Image tag: ${env.IMAGE_TAG}"
+                    echo "📂 Deployment suffix: ${env.DEPLOYMENT_SUFFIX}"
                 }
             }
         }
@@ -79,6 +69,16 @@ pipeline {
             when { anyOf { branch 'master'; branch 'stage'; branch 'dev' } }
             steps {
                 bat "mvn clean package -DskipTests"
+            }
+        }
+
+        stage('Ensure Namespace') {
+            steps {
+                script {
+                    def ns = env.K8S_NAMESPACE
+                    bat "kubectl get namespace ${ns} || kubectl create namespace ${ns}"
+                    bat "kubectl get namespace monitoring || kubectl create namespace monitoring"
+                }
             }
         }
 
@@ -203,22 +203,22 @@ pipeline {
 
 */
 
-         stage('Unit Tests') {
-                    when {
-                        anyOf {
-                            branch 'dev'; branch 'stage'
-                            expression { env.BRANCH_NAME.startsWith('feature/') }
-                        }
-                    }
-                    steps {
-                        script {
-                            ['user-service', 'product-service'].each {
-                                bat "mvn test -pl ${it}"
-                            }
-                        }
-                        junit '**/target/surefire-reports/*.xml'
+        stage('Unit Tests') {
+            when {
+                anyOf {
+                    branch 'dev'; branch 'stage'
+                    expression { env.BRANCH_NAME.startsWith('feature/') }
+                }
+            }
+            steps {
+                script {
+                    ['user-service', 'product-service'].each {
+                        bat "mvn test -pl ${it}"
                     }
                 }
+                junit '**/target/surefire-reports/*.xml'
+            }
+        }
 
 
         stage('Integration Tests') {
@@ -500,20 +500,19 @@ pipeline {
 
 
 
-       stage('Run Load Tests with Locust') {
-
-           when {
+        stage('Run Load Tests with Locust') {
+            when {
                 anyOf {
                     branch 'stage'
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
-           steps {
-               script {
-                   bat '''
-                   echo 🚀 Starting Locust for order-service...
+            steps {
+                script {
+                    bat '''
+                    echo 🚀 Starting Locust for order-service...
 
-                   if not exist locust-reports (
+                    if not exist locust-reports (
                         mkdir locust-reports
                     )
 
@@ -554,95 +553,93 @@ pipeline {
                      --only-summary ^
                      --html /mnt/locust/favourite-service-report.html
 
-                   echo ✅ Tests completed
-                   '''
-               }
-           }
-       }
+                    echo ✅ Tests completed
+                    '''
+                }
+            }
+        }
 
-       stage('Run Stress Tests with Locust') {
-           when {
+        stage('Run Stress Tests with Locust') {
+            when {
                 anyOf {
                     branch 'stage'
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
-           steps {
-               script {
-                   bat '''
-                   echo 🔥 Starting Locust for stress testing...
+            steps {
+                script {
+                    bat '''
+                    echo 🔥 Starting Locust for stress testing...
 
-                   docker run --rm --network ecommerce-test ^
-                   -v "%CD%/locust-reports:/mnt/locust" ^
-                   -v "%CD%\\locust:/mnt" ^
-                   -v "%CD%\\locust-results:/app" ^
-                   sanjodb/locust:%IMAGE_TAG% ^
-                   -f /mnt/test/order-service/locustfile.py ^
-                   --host http://order-service-container:8300 ^
-                   --headless -u 10 -r 1 -t 1m ^
-                   --only-summary ^
-                   --html /mnt/locust/stress-order-service-report.html
+                    docker run --rm --network ecommerce-test ^
+                    -v "%CD%/locust-reports:/mnt/locust" ^
+                    -v "%CD%\\locust:/mnt" ^
+                    -v "%CD%\\locust-results:/app" ^
+                    sanjodb/locust:%IMAGE_TAG% ^
+                    -f /mnt/test/order-service/locustfile.py ^
+                    --host http://order-service-container:8300 ^
+                    --headless -u 10 -r 1 -t 1m ^
+                    --only-summary ^
+                    --html /mnt/locust/stress-order-service-report.html
 
-                   docker run --rm --network ecommerce-test ^
-                   -v "%CD%/locust-reports:/mnt/locust" ^
-                   -v "%CD%\\locust:/mnt" ^
-                   -v "%CD%\\locust-results:/app" ^
-                   sanjodb/locust:%IMAGE_TAG% ^
-                   -f /mnt/test/payment-service/locustfile.py ^
-                   --host http://payment-service-container:8400 ^
-                   --headless -u 10 -r 1 -t 1m ^
-                   --only-summary ^
-                   --html /mnt/locust/stress-payment-service-report.html
+                    docker run --rm --network ecommerce-test ^
+                    -v "%CD%/locust-reports:/mnt/locust" ^
+                    -v "%CD%\\locust:/mnt" ^
+                    -v "%CD%\\locust-results:/app" ^
+                    sanjodb/locust:%IMAGE_TAG% ^
+                    -f /mnt/test/payment-service/locustfile.py ^
+                    --host http://payment-service-container:8400 ^
+                    --headless -u 10 -r 1 -t 1m ^
+                    --only-summary ^
+                    --html /mnt/locust/stress-payment-service-report.html
 
-                   docker run --rm --network ecommerce-test ^
-                   -v "%CD%/locust-reports:/mnt/locust" ^
-                   -v "%CD%\\locust:/mnt" ^
-                   -v "%CD%\\locust-results:/app" ^
-                   sanjodb/locust:%IMAGE_TAG% ^
-                   -f /mnt/test/favourite-service/locustfile.py ^
-                   --host http://favourite-service-container:8800 ^
-                   --headless -u 10 -r 1 -t 1m ^
-                   --only-summary ^
-                   --html /mnt/locust/stress-favourite-service-report.html
+                    docker run --rm --network ecommerce-test ^
+                    -v "%CD%/locust-reports:/mnt/locust" ^
+                    -v "%CD%\\locust:/mnt" ^
+                    -v "%CD%\\locust-results:/app" ^
+                    sanjodb/locust:%IMAGE_TAG% ^
+                    -f /mnt/test/favourite-service/locustfile.py ^
+                    --host http://favourite-service-container:8800 ^
+                    --headless -u 10 -r 1 -t 1m ^
+                    --only-summary ^
+                    --html /mnt/locust/stress-favourite-service-report.html
 
-                   echo ✅ Stress tests completed
-                   '''
-               }
-           }
-       }
-
-
-
-       stage('Stop and remove containers') {
-                when {
-                       anyOf {
-                           branch 'stage'
-                           expression { env.BRANCH_NAME.startsWith('feature/') }
-                       }
+                    echo ✅ Stress tests completed
+                    '''
                 }
-           steps {
-               script {
-                   bat """
-                   echo 🛑 Stopping and removing containers...
+            }
+        }
 
-                   docker rm -f locust || exit 0
-                   docker rm -f favourite-service-container || exit 0
-                   docker rm -f user-service-container || exit 0
-                   docker rm -f shipping-service-container || exit 0
-                   docker rm -f product-service-container || exit 0
-                   docker rm -f payment-service-container || exit 0
-                   docker rm -f order-service-container || exit 0
-                   docker rm -f cloud-config-container || exit 0
-                   docker rm -f service-discovery-container || exit 0
-                   docker rm -f zipkin-container || exit 0
 
-                   echo 🧹 All containers removed
-                   """
-               }
-           }
-       }
 
-*/
+        stage('Stop and remove containers') {
+            when {
+                anyOf {
+                    branch 'stage'
+                    expression { env.BRANCH_NAME.startsWith('feature/') }
+                }
+            }
+            steps {
+                script {
+                    bat """
+                    echo 🛑 Stopping and removing containers...
+
+                    docker rm -f locust || exit 0
+                    docker rm -f favourite-service-container || exit 0
+                    docker rm -f user-service-container || exit 0
+                    docker rm -f shipping-service-container || exit 0
+                    docker rm -f product-service-container || exit 0
+                    docker rm -f payment-service-container || exit 0
+                    docker rm -f order-service-container || exit 0
+                    docker rm -f cloud-config-container || exit 0
+                    docker rm -f service-discovery-container || exit 0
+                    docker rm -f zipkin-container || exit 0
+
+                    echo 🧹 All containers removed
+                    """
+                }
+            }
+        }
 
         stage('Waiting approval for deployment') {
             when { branch 'master' }
@@ -660,6 +657,26 @@ pipeline {
                     )
                     input message: 'Approve deployment to production (kubernetes) ?', ok: 'Deploy'
                 }
+            }
+        }
+
+*/
+
+        stage('Deploy Observability Stack') {
+            when { branch 'master' }
+            steps {
+                bat '''
+                    echo "📊 Deploying Prometheus and Grafana with ..."
+
+                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                    helm repo update
+
+                    helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack ^
+                    --namespace monitoring --create-namespace ^
+                    -f monitoring/values.yaml
+                 
+                    echo "✅ Observability stack deployed successfully!"
+                '''
             }
         }
 
