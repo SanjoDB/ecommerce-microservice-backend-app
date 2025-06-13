@@ -660,8 +660,6 @@ pipeline {
             }
         }
 
-*/
-
         stage('Deploy Observability Stack') {
             when { branch 'master' }
             steps {
@@ -686,8 +684,6 @@ pipeline {
                 bat "kubectl apply -f k8s\\common-config.yaml -n ${K8S_NAMESPACE}"
             }
         }
-
-/*
 
         stage('Deploy Core Services') {
             when { anyOf { branch 'master' } }
