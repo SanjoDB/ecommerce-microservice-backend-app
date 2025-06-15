@@ -64,6 +64,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('Get GKE Credentials') {
             steps {
                 script {
@@ -75,6 +77,8 @@ pipeline {
                 }
             }
         }
+
+*/
 
         stage('Checkout') {
             steps {
