@@ -20,19 +20,19 @@ variable "region" {
 variable "subnet_cidr_range" {
   description = "CIDR range for the private subnet"
   type        = string
-  default     = "10.20.0.0/24"
+  default     = "10.0.0.0/24"
 }
 
 variable "pods_secondary_range_cidr" {
   description = "Secondary CIDR range for pods"
   type        = string
-  default     = "10.21.0.0/16"
+  default     = "10.1.0.0/16"
 }
 
 variable "services_secondary_range_cidr" {
   description = "Secondary CIDR range for services"
   type        = string
-  default     = "10.22.0.0/16"
+  default     = "10.2.0.0/16"
 }
 
 variable "create_nat_gateway" {
@@ -84,6 +84,12 @@ variable "gke_disk_type" {
   default     = "pd-standard"
 }
 
+variable "gke_preemptible" {
+  description = "Whether to use preemptible nodes for GKE"
+  type        = bool
+  default     = true
+}
+
 variable "enable_workload_identity" {
   description = "Enable Workload Identity"
   type        = bool
@@ -108,13 +114,6 @@ variable "gke_monitoring_service" {
   default     = "monitoring.googleapis.com/kubernetes"
 }
 
-variable "gke_preemptible" {
-  description = "Whether to use preemptible nodes for GKE"
-  type        = bool
-  default     = true
-}
-
-# Artifact Registry Configuration
 variable "artifact_cleanup_dry_run" {
   description = "Whether cleanup policy should run in dry-run mode"
   type        = bool
@@ -124,11 +123,11 @@ variable "artifact_cleanup_dry_run" {
 variable "artifact_cleanup_keep_tags" {
   description = "Tag prefixes to keep during cleanup"
   type        = list(string)
-  default     = ["latest", "main", "master", "prod", "production", "release", "v"]
+  default     = ["latest", "main", "master", "dev", "develop"]
 }
 
 variable "artifact_cleanup_older_than" {
   description = "Delete images older than this duration"
   type        = string
-  default     = "7776000s" # 90 days for production
+  default     = "1296000s" # 30 days
 }
