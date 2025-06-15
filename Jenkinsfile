@@ -7,10 +7,13 @@ pipeline {
     }
 
     environment {
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account-key')
         DOCKERHUB_USER = 'sanjodb'
         DOCKER_CREDENTIALS_ID = 'docker_password'
         SERVICES = 'api-gateway cloud-config favourite-service order-service payment-service product-service proxy-client service-discovery shipping-service user-service locust'
         K8S_NAMESPACE = 'ecommerce'
+        PATH = "C:\\Program Files (x86)\\Google\\Cloud SDK\\google-cloud-sdk\\bin;${env.PATH}"
+        TF_VAR_project_id = 'proyecto-final-ingesoftv'
         KUBECONFIG = 'C:\\Users\\Santi\\.kube\\config'
     }
 
@@ -46,6 +49,30 @@ pipeline {
                     echo "🌱 Spring profile: ${env.SPRING_PROFILES_ACTIVE}"
                     echo "🏷️ Image tag: ${env.IMAGE_TAG}"
                     echo "📂 Deployment suffix: ${env.DEPLOYMENT_SUFFIX}"
+                }
+            }
+        }
+
+        stage('Authenticate to GCP') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    bat """
+                    echo "🔐 Activando cuenta de servicio..."
+                    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                    gcloud config set project $TF_VAR_project_id
+                    """
+                }
+            }
+        }
+
+        stage('Get GKE Credentials') {
+            steps {
+                script {
+                    def clusterName = "ecommerce-cluster-${env.SPRING_PROFILES_ACTIVE}"
+                    bat """
+                    echo 🔐 Obteniendo credenciales del cluster GKE...
+                    gcloud container clusters get-credentials ${clusterName} --zone us-central1 --project ${env.TF_VAR_project_id}
+                    """
                 }
             }
         }
@@ -738,34 +765,36 @@ pipeline {
                 bat "kubectl apply -f k8s\\common-config.yaml -n ${K8S_NAMESPACE}"
             }
         }
-
+        
         stage('Deploy Core Services') {
             when { anyOf { branch 'master' } }
             steps {
                 bat "kubectl apply -f k8s\\zipkin -n ${K8S_NAMESPACE}"
-                bat "kubectl rollout status deployment/zipkin -n ${K8S_NAMESPACE} --timeout=200s"
+                bat "kubectl rollout status deployment/zipkin -n ${K8S_NAMESPACE} --timeout=300s"
 
                 bat "kubectl apply -f k8s\\service-discovery -n ${K8S_NAMESPACE}"
                 bat "kubectl set image deployment/service-discovery service-discovery=${DOCKERHUB_USER}/service-discovery:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
-                bat "kubectl rollout status deployment/service-discovery -n ${K8S_NAMESPACE} --timeout=500s"
+                bat "kubectl set env deployment/service-discovery SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -n ${K8S_NAMESPACE}"
+                bat "kubectl rollout status deployment/service-discovery -n ${K8S_NAMESPACE} --timeout=300s"
 
                 bat "kubectl apply -f k8s\\cloud-config -n ${K8S_NAMESPACE}"
                 bat "kubectl set image deployment/cloud-config cloud-config=${DOCKERHUB_USER}/cloud-config:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
-                bat "kubectl rollout status deployment/cloud-config -n ${K8S_NAMESPACE} --timeout=500s"
+                bat "kubectl set env deployment/cloud-config SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -n ${K8S_NAMESPACE}"
+                bat "kubectl rollout status deployment/cloud-config -n ${K8S_NAMESPACE} --timeout=300s"
             }
         }
 
         stage('Deploy Microservices') {
-            when { anyOf { branch 'master'; } }
+            when { anyOf { branch 'master' } }
             steps {
                 script {
-                    def appServices = ['user-service', 'product-service', 'order-service','favourite-service','payment-service']
-                    echo "👻"
-                    appServices.each { svc ->
-                        bat "kubectl apply -f k8s\\${svc} -n ${K8S_NAMESPACE}"
-                        bat "kubectl set image deployment/${svc} ${svc}=${DOCKERHUB_USER}/${svc}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
-                        bat "kubectl set env deployment/${svc} SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -n ${K8S_NAMESPACE}"
-                        bat "kubectl rollout status deployment/${svc} -n ${K8S_NAMESPACE} --timeout=500s"
+                    SERVICES.split().each { svc ->
+                        if (!['locust'].contains(svc)) {
+                            bat "kubectl apply -f k8s\\${svc} -n ${K8S_NAMESPACE}"
+                            bat "kubectl set image deployment/${svc} ${svc}=${DOCKERHUB_USER}/${svc}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
+                            bat "kubectl set env deployment/${svc} SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -n ${K8S_NAMESPACE}"
+                            bat "kubectl rollout status deployment/${svc} -n ${K8S_NAMESPACE} --timeout=300s"
+                        }
                     }
                 }
             }
