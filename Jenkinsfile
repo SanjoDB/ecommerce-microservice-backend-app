@@ -13,8 +13,7 @@ pipeline {
         SERVICES = 'api-gateway cloud-config favourite-service order-service payment-service product-service proxy-client service-discovery shipping-service user-service locust'
         K8S_NAMESPACE = 'ecommerce'
         PATH = "C:\\Program Files (x86)\\Google\\Cloud SDK\\google-cloud-sdk\\bin;${env.PATH}"
-        TF_VAR_project_id = 'proyecto-final-ingesoftv'
-        KUBECONFIG = 'C:\\Users\\Santi\\.kube\\config'
+        TF_VAR_project_id = 'our-lamp-462921-j5'
     }
 
     parameters {
