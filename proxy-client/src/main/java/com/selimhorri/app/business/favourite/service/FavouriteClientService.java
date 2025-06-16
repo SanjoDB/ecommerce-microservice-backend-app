@@ -16,10 +16,13 @@ import com.selimhorri.app.business.favourite.model.FavouriteDto;
 import com.selimhorri.app.business.favourite.model.FavouriteId;
 import com.selimhorri.app.business.favourite.model.response.FavouriteFavouriteServiceCollectionDtoResponse;
 
+import io.github.resilience4j.retry.annotation.Retry;
+
 @FeignClient(name = "FAVOURITE-SERVICE", 
 contextId = "favouriteClientService", 
 path = "/favourite-service/api/favourites",
 fallback = FavouriteClientServiceFallback.class)
+@Retry(name = "favouriteClientService")
 public interface FavouriteClientService {
 	
 	@GetMapping

@@ -16,10 +16,13 @@ import com.selimhorri.app.business.orderItem.model.OrderItemDto;
 import com.selimhorri.app.business.orderItem.model.OrderItemId;
 import com.selimhorri.app.business.orderItem.model.response.OrderItemOrderItemServiceDtoCollectionResponse;
 
+import io.github.resilience4j.retry.annotation.Retry;
+
 @FeignClient(name = "SHIPPING-SERVICE", 
 contextId = "shippingClientService", 
 path = "/shipping-service/api/shippings",
 fallback = OrderItemClientServiceFallback.class)
+@Retry(name = "shippingClientService")
 public interface OrderItemClientService {
 	
 	@GetMapping

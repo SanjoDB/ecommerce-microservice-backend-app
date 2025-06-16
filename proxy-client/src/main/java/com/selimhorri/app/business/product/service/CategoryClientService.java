@@ -16,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.selimhorri.app.business.product.model.CategoryDto;
 import com.selimhorri.app.business.product.model.response.CategoryProductServiceCollectionDtoResponse;
 
+import io.github.resilience4j.retry.annotation.Retry;
+
 @FeignClient(name = "PRODUCT-SERVICE", 
 contextId = "categoryClientService", 
 path = "/product-service/api/categories",
 fallback = CategoryClientServiceFallback.class)
+@Retry(name = "categoryClientService")
 public interface CategoryClientService {
 	
 	@GetMapping

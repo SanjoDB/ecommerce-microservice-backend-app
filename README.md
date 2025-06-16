@@ -600,6 +600,84 @@ public interface ProductClientService {
 
 Esta mejora refuerza el cumplimiento de los principios de microservicios y las mejores prácticas de arquitectura en la nube, asegurando un sistema robusto, escalable y preparado para escenarios de alta disponibilidad.
 
+### 2.3.2 Patrones de Diseño Extra Implementados
+
+#### Retry Pattern
+
+El **Retry Pattern** es un patrón de resiliencia que permite reintentar automáticamente operaciones fallidas, mitigando errores transitorios como fallos de red o caídas temporales de servicios dependientes. Su uso es fundamental en arquitecturas distribuidas para mejorar la robustez y la experiencia del usuario, evitando fallos inmediatos ante errores recuperables.
+
+##### ¿Cómo se implementó?
+
+- **Tecnología:** Se utilizó [Resilience4j Retry](https://resilience4j.readme.io/docs/retry) integrado con Spring Cloud.
+- **Cobertura:** El patrón se aplicó a todos los Feign Clients del microservicio `proxy-client`, permitiendo reintentos automáticos en la comunicación con servicios remotos.
+- **Configuración centralizada:** Los parámetros de retry (número de intentos, tiempo de espera entre reintentos, excepciones a capturar) se gestionan desde el archivo `application.yml`, facilitando su ajuste sin modificar el código fuente.
+
+##### Ejemplo de implementación
+
+**1. Configuración en `application.yml`:**
+```yaml
+resilience4j:
+  circuitbreaker:
+    instances:
+      # ...servicios...
+  retry:
+    instances:
+      productClientService:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+      categoryClientService:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+      # ...otros servicios...
+```
+
+**2. Anotación en el Feign Client:**
+```java
+@FeignClient(
+    name = "PRODUCT-SERVICE",
+    contextId = "productClientService",
+    path = "/product-service/api/products",
+    fallback = ProductClientServiceFallback.class
+)
+@Retry(name = "productClientService")
+public interface ProductClientService {
+    // Métodos...
+}
+```
+
+##### Beneficios de la implementación
+
+- **Mayor tolerancia a fallos transitorios:** El sistema reintenta automáticamente antes de fallar, mejorando la disponibilidad.
+- **Configuración flexible:** Permite ajustar la política de reintentos por servicio según la criticidad o el comportamiento esperado.
+- **No intrusivo:** No requiere modificar la lógica de negocio existente.
+- **Mejor experiencia de usuario:** Reduce la probabilidad de errores visibles por problemas temporales de red o servicios.
+
+##### Servicios cubiertos
+
+- ProductClientService
+- OrderClientService
+- OrderItemClientService
+- PaymentClientService
+- FavouriteClientService
+- UserClientService
+- CredentialClientService
+- AddressClientService
+- CategoryClientService
+- CartClientService
+- VerificationTokenClientService
+
+---
+
+Esta implementación refuerza la resiliencia de la arquitectura, alineándose con las mejores prácticas de sistemas distribuidos en la nube.
+
+
+
 ### 2.4 Ambientes Definidos
 
 El ciclo de vida del software se gestiona a través de tres ambientes principales:
