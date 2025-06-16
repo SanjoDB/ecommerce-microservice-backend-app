@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.3...v1.2.4) (2025-06-16)
+
+
+### Bug Fixes
+
+* update module paths for stage and dev environments ([b5aae8a](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/b5aae8aaf9926de6fe1b70918f14ffe6c48be37d))
+
 ## [1.2.3](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.2...v1.2.3) (2025-06-16)
 
 
