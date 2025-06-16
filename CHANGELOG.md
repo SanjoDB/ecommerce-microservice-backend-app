@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.2...v1.2.3) (2025-06-16)
+
+
+### Bug Fixes
+
+* update module paths to ../../modules for correct resolution ([e925a9b](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/e925a9b3091492bbff419477dbd79c4e48edd7da))
+
 ## [1.2.2](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.1...v1.2.2) (2025-06-16)
 
 
