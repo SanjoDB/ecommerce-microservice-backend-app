@@ -34,7 +34,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir("environments/${env.TF_ENVIRONMENT}") {
+                dir("infra/environments/${env.TF_ENVIRONMENT}") {
                     bat '''
                     echo Inicializando Terraform...
                     terraform init
@@ -45,7 +45,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir("environments/${env.TF_ENVIRONMENT}") {
+                dir("infra/environments/${env.TF_ENVIRONMENT}") {
                     bat '''
                     echo Generando plan...
                     terraform plan -out=tfplan
@@ -79,7 +79,7 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                dir("environments/${env.TF_ENVIRONMENT}") {
+                dir("infra/environments/${env.TF_ENVIRONMENT}") {
                     bat '''
                     echo Aplicando cambios...
                     terraform apply -auto-approve tfplan
@@ -90,7 +90,7 @@ pipeline {
 
         stage('Show Outputs') {
             steps {
-                dir("environments/${env.TF_ENVIRONMENT}") {
+                dir("infra/environments/${env.TF_ENVIRONMENT}") {
                     bat '''
                     echo Outputs de infraestructura:
                     terraform output
@@ -110,7 +110,7 @@ pipeline {
         }
 
         always {
-            dir("environments/${env.TF_ENVIRONMENT}") {
+            dir("infra/environments/${env.TF_ENVIRONMENT}") {
                 bat 'if exist tfplan del tfplan'
             }
         }
