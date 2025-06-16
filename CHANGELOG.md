@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.1.0...v1.2.0) (2025-06-16)
+
+
+### Features
+
+* Add rollback plan documentation ([fd10e65](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/fd10e6558369aa69c782d39ea65ed2a93c7aabca))
+
 # [1.1.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.0.0...v1.1.0) (2025-06-16)
 
 
