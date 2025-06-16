@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.4...v1.3.0) (2025-06-16)
+
+
+### Features
+
+* add Prometheus, Grafana and ELK stack deployment to Terraform pipeline ([eed9df0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/eed9df0c8560537c7039e4e630cb0747cb40e981))
+
 ## [1.2.4](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.3...v1.2.4) (2025-06-16)
 
 
