@@ -70,7 +70,7 @@ grafana:
   
   # Variables de entorno para SMTP Gmail (solo para dashboards)
   env:
-    GF_SMTP_PASSWORD: "qqyx cbiq jjga pygp"
+    GF_SMTP_PASSWORD: "wplp kqww djne dzaz"
 
 # Configuración de Alertmanager
 alertmanager:
@@ -94,10 +94,10 @@ alertmanager:
   
   config:
     global:
-      smtp_smarthost: 'smtp.gmail.com:587'
-      smtp_from: 'icesiproyecto@gmail.com'
-      smtp_auth_username: 'icesiproyecto@gmail.com'
-      smtp_auth_password: 'qqyx cbiq jjga pygp'
+      smtp_smarthost: 'smtp.gmail.com:465'
+      smtp_from: 'ingesoft.proyecto@gmail.com'
+      smtp_auth_username: 'ingesoft.proyecto@gmail.com'
+      smtp_auth_password: 'wplp kqww djne dzaz'
       smtp_require_tls: true
     
     route:
@@ -119,7 +119,7 @@ alertmanager:
     receivers:
       - name: 'default-receiver'
         email_configs:
-          - to: 'jumadrid005@gmail.com'
+          - to: 'ingesoft.proyecto@gmail.com'
             headers:
               subject: '[ECOMMERCE] {{ (index .Alerts 0).Labels.alertname }} - {{ (index .Alerts 0).Labels.severity }}'
             text: |
@@ -140,7 +140,7 @@ alertmanager:
 
       - name: 'critical-receiver'
         email_configs:
-          - to: 'jumadrid005@gmail.com'
+          - to: 'ingesoft.proyecto@gmail.com'
             headers:
               subject: '🚨 CRITICAL: {{ (index .Alerts 0).Labels.alertname }}'
             text: |
@@ -164,7 +164,7 @@ alertmanager:
 
       - name: 'warning-receiver'
         email_configs:
-          - to: 'jumadrid005@gmail.com'
+          - to: 'ingesoft.proyecto@gmail.com'
             headers:
               subject: '⚠️ WARNING: {{ (index .Alerts 0).Labels.alertname }}'
             text: |
