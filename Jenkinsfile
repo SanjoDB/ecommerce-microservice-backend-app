@@ -64,8 +64,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('Get GKE Credentials') {
             steps {
                 script {
@@ -77,8 +75,6 @@ pipeline {
                 }
             }
         }
-
-*/
 
         stage('Checkout') {
             steps {
@@ -111,8 +107,6 @@ pipeline {
                 }
             }
         }
-
-/*
 
         stage('Run SonarQube Analysis') {
             when { branch 'master' }
@@ -215,6 +209,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('Build & Push Docker Images') {
             when { anyOf { branch 'stage'; branch 'master' } }
             steps {
@@ -269,8 +265,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('E2E Tests') {
             when {
                 anyOf {
@@ -283,8 +277,6 @@ pipeline {
                 junit 'e2e-tests/target/failsafe-reports/*.xml'
             }
         }
-
-*/
 
     stage('Start containers for testing') {
               when {
@@ -723,8 +715,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('Waiting approval for deployment') {
             when { branch 'master' }
             steps {
@@ -802,8 +792,6 @@ pipeline {
                 }
             }
         }
-
-*/
 
         stage('Generate and Archive Release Notes') {
             when {
