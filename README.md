@@ -511,6 +511,95 @@ Uso de constantes y variables externas para endpoints y configuración.
 
 Estos patrones están presentes en la arquitectura y el código fuente del proyecto, asegurando una solución robusta, escalable y alineada con las mejores prácticas de la industria.
 
+### 2.3.1 Patrones de Diseño Mejorados
+
+### Mejora Implementada: Circuit Breaker / Resilience Pattern
+
+Para fortalecer la resiliencia y la tolerancia a fallos en la arquitectura de microservicios, se mejoró la implementación del patrón **Circuit Breaker** en todos los Feign Clients del microservicio `proxy-client`. Esta mejora garantiza que, ante la caída o lentitud de un microservicio dependiente, el sistema responde de manera controlada y evita fallos en cascada.
+
+#### ¿En qué consistió la mejora?
+
+- **Creación de clases fallback** para cada Feign Client, devolviendo respuestas controladas o vacías cuando el servicio remoto no está disponible.
+- **Asociación explícita del fallback** en la anotación `@FeignClient` de cada interfaz.
+- **Cobertura total**: Se implementó para los servicios de producto, orden, usuario, credenciales, dirección, favoritos, pagos, categorías y order items.
+- **Personalización de respuestas**: Cada fallback retorna datos vacíos, nulos o mensajes de error controlados según la lógica de negocio, permitiendo que el frontend o los servicios consumidores manejen adecuadamente la indisponibilidad temporal.
+
+#### Ejemplo de implementación
+
+**1. Clase Fallback para ProductClientService:**
+```java
+@Component
+public class ProductClientServiceFallback implements ProductClientService {
+
+    @Override
+    public ResponseEntity<ProductProductServiceCollectionDtoResponse> findAll() {
+        return ResponseEntity.ok(new ProductProductServiceCollectionDtoResponse());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> findById(String productId) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> save(ProductDto productDto) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> update(ProductDto productDto) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> update(String productId, ProductDto productDto) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<Boolean> deleteById(String productId) {
+        return ResponseEntity.ok(Boolean.FALSE);
+    }
+    
+}
+```
+
+**2. Asociación del fallback en la interfaz Feign Client:**
+```java
+@FeignClient(
+    name = "PRODUCT-SERVICE",
+    contextId = "productClientService",
+    path = "/product-service/api/products",
+    fallback = ProductClientServiceFallback.class
+)
+public interface ProductClientService {
+    // Métodos...
+}
+```
+
+#### Beneficios de la mejora
+
+- **Mayor resiliencia:** El sistema sigue funcionando y responde de forma predecible ante fallos de servicios remotos.
+- **Mejor experiencia de usuario:** Se evitan errores inesperados y se pueden mostrar mensajes claros cuando un servicio no está disponible.
+- **Facilidad de mantenimiento:** El manejo de fallos está centralizado y es fácilmente extensible a nuevos servicios.
+- **Preparación para escenarios reales:** Permite simular y manejar caídas de servicios en pruebas de carga y estrés, validando la robustez de la arquitectura.
+
+#### Servicios cubiertos
+
+- ProductClientService
+- OrderClientService
+- OrderItemClientService
+- PaymentClientService
+- FavouriteClientService
+- UserClientService
+- CredentialClientService
+- AddressClientService
+- CategoryClientService
+
+---
+
+Esta mejora refuerza el cumplimiento de los principios de microservicios y las mejores prácticas de arquitectura en la nube, asegurando un sistema robusto, escalable y preparado para escenarios de alta disponibilidad.
+
 ### 2.4 Ambientes Definidos
 
 El ciclo de vida del software se gestiona a través de tres ambientes principales:
