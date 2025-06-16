@@ -1,3 +1,14 @@
+# [1.1.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.0.0...v1.1.0) (2025-06-16)
+
+
+### Features
+
+* Add Pipeline for deploy terraform ([d775923](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/d7759232178aae73f8331d29e38ef168a20ce139))
+* add Terraform for Dev enviroment ([7ac530a](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/7ac530a083db23144c9b7323f8c2278b6357fe7f))
+* add Terraform for Prod enviroment and add modules for monitoring ([403d35a](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/403d35ad9a5d295ead383fc0b936510ba914d2bb))
+* Add Terraform, Merge pull request [#1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/issues/1) from SanjoDB/feature/Terraform ([6e9db53](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/6e9db539263e7e5b060436831bb78f66d97ac828))
+* feat: add Terraform for Stage enviroment ([e55d22f](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/e55d22f9fd7e3dc2b014c35afce5cc72bce9dd34))
+
 # 1.0.0 (2025-06-15)
 
 
