@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.0...v1.2.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* prevent Terraform init failure by correcting Jenkinsfile checkout logic ([ef6b294](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/ef6b29481897bbf656a4c965b6b8f137af29dfee))
+
 # [1.2.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.1.0...v1.2.0) (2025-06-16)
 
 
