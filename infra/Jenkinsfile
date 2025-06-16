@@ -28,7 +28,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/SanjoDB/ecommerce-microservice-backend-app'
+                echo "Usando el checkout automático de Jenkins"
             }
         }
 
@@ -64,7 +64,7 @@ pipeline {
             }
             steps {
                 emailext(
-                    to: '$DEFAULT_RECIPIENTS',
+                    to: 'ingesoft.proyecto@gmail.com',
                     subject: "Action Required: Approval Needed for Deploy of Infraestructure #${env.BUILD_NUMBER}",
                     body: """\
                     The build #${env.BUILD_NUMBER} for branch *${env.BRANCH_NAME}* has completed and is pending approval for deployment.
@@ -73,7 +73,7 @@ pipeline {
                     ${env.BUILD_URL}
                     """
                 )
-                input message: '¿Aplicar cambios en Staging?', ok: 'Aplicar'
+                input message: '¿Aplicar cambios en *${env.BRANCH_NAME}*?', ok: 'Aplicar'
             }
         }
 
