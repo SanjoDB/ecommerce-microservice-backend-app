@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.3.0...v1.3.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* correct paths for observability stack deployment ([d904ec6](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/d904ec649cca4d73178e27b1d608404aedb212b4))
+
 # [1.3.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.4...v1.3.0) (2025-06-16)
 
 
