@@ -676,6 +676,64 @@ public interface ProductClientService {
 
 Esta implementación refuerza la resiliencia de la arquitectura, alineándose con las mejores prácticas de sistemas distribuidos en la nube.
 
+#### Rate Limiter Pattern
+
+El **Rate Limiter Pattern** es un patrón de resiliencia que protege los microservicios de sobrecargas y abusos limitando la cantidad de solicitudes permitidas en un periodo de tiempo determinado. Su implementación es fundamental para evitar la degradación del servicio ante picos de tráfico o ataques de denegación de servicio (DoS), garantizando la disponibilidad y estabilidad del sistema.
+
+##### ¿Cómo se implementó?
+
+- **Tecnología:** Se utilizó [Resilience4j RateLimiter](https://resilience4j.readme.io/docs/ratelimiter) integrado con Spring Boot.
+- **Cobertura:** El patrón se aplicó en los endpoints REST de los recursos de productos y categorías en el microservicio `product-service`.
+- **Configuración centralizada:** Los parámetros del rate limiter (límite de solicitudes, periodo de refresco, timeout) se gestionan desde el archivo `application.yml`, permitiendo su ajuste sin modificar el código fuente.
+
+##### Ejemplo de implementación
+
+**1. Configuración en `application.yml`:**
+```yaml
+resilience4j:
+  ratelimiter:
+    instances:
+      productApi:
+        limit-for-period: 5
+        limit-refresh-period: 1s
+        timeout-duration: 0
+```
+Esto permite hasta 5 solicitudes por segundo a los endpoints protegidos bajo el nombre `productApi`.
+
+**2. Anotación en los recursos REST:**
+```java
+// ProductResource.java
+@GetMapping
+@RateLimiter(name = "productApi")
+public ResponseEntity<DtoCollectionResponse<ProductDto>> findAll() {
+    // ...
+}
+
+// CategoryResource.java
+@GetMapping
+@RateLimiter(name = "productApi")
+public ResponseEntity<DtoCollectionResponse<CategoryDto>> findAll() {
+    // ...
+}
+```
+La anotación `@RateLimiter(name = "productApi")` protege el endpoint, aplicando la política definida en la configuración.
+
+##### Beneficios de la implementación
+
+- **Protección ante sobrecarga:** Evita que un exceso de solicitudes degrade el rendimiento o cause caídas del servicio.
+- **Mejor experiencia de usuario:** Garantiza tiempos de respuesta estables y predecibles bajo alta demanda.
+- **Configuración flexible:** Permite ajustar los límites de solicitudes según la criticidad del endpoint o la capacidad del servicio.
+- **Fácil integración:** No requiere cambios en la lógica de negocio existente y puede aplicarse selectivamente a métodos o clases.
+
+##### Servicios y endpoints cubiertos
+
+- `product-service`:
+  - GET `/api/products` (listado de productos)
+  - GET `/api/categories` (listado de categorías)
+
+---
+
+Esta implementación fortalece la robustez y disponibilidad del sistema, alineándose con las mejores prácticas de arquitecturas distribuidas y microservicios en la
 
 
 ### 2.4 Ambientes Definidos

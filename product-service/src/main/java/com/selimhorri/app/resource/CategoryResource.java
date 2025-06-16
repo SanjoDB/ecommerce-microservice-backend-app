@@ -18,6 +18,7 @@ import com.selimhorri.app.dto.CategoryDto;
 import com.selimhorri.app.dto.response.collection.DtoCollectionResponse;
 import com.selimhorri.app.service.CategoryService;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,6 +31,7 @@ public class CategoryResource {
 	private final CategoryService categoryService;
 	
 	@GetMapping
+	@RateLimiter(name = "productApi")
 	public ResponseEntity<DtoCollectionResponse<CategoryDto>> findAll() {
 		log.info("*** CategoryDto List, controller; fetch all categories *");
 		return ResponseEntity.ok(new DtoCollectionResponse<>(this.categoryService.findAll()));
