@@ -16,7 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.selimhorri.app.business.user.model.VerificationTokenDto;
 import com.selimhorri.app.business.user.model.response.VerificationUserTokenServiceCollectionDtoResponse;
 
-@FeignClient(name = "USER-SERVICE", contextId = "verificationTokenClientService", path = "/user-service/api/verificationTokens", decode404 = true)
+import io.github.resilience4j.retry.annotation.Retry;
+
+@FeignClient(name = "USER-SERVICE", 
+contextId = "verificationTokenClientService", 
+path = "/user-service/api/verificationTokens", 
+fallback = VerificationTokenClientServiceFallback.class,
+decode404 = true)
+@Retry(name = "verificationTokenClientService")
 public interface VerificationTokenClientService {
 	
 	@GetMapping

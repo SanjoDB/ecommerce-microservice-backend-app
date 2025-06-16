@@ -511,6 +511,231 @@ Uso de constantes y variables externas para endpoints y configuración.
 
 Estos patrones están presentes en la arquitectura y el código fuente del proyecto, asegurando una solución robusta, escalable y alineada con las mejores prácticas de la industria.
 
+### 2.3.1 Patrones de Diseño Mejorados
+
+### Mejora Implementada: Circuit Breaker / Resilience Pattern
+
+Para fortalecer la resiliencia y la tolerancia a fallos en la arquitectura de microservicios, se mejoró la implementación del patrón **Circuit Breaker** en todos los Feign Clients del microservicio `proxy-client`. Esta mejora garantiza que, ante la caída o lentitud de un microservicio dependiente, el sistema responde de manera controlada y evita fallos en cascada.
+
+#### ¿En qué consistió la mejora?
+
+- **Creación de clases fallback** para cada Feign Client, devolviendo respuestas controladas o vacías cuando el servicio remoto no está disponible.
+- **Asociación explícita del fallback** en la anotación `@FeignClient` de cada interfaz.
+- **Cobertura total**: Se implementó para los servicios de producto, orden, usuario, credenciales, dirección, favoritos, pagos, categorías y order items.
+- **Personalización de respuestas**: Cada fallback retorna datos vacíos, nulos o mensajes de error controlados según la lógica de negocio, permitiendo que el frontend o los servicios consumidores manejen adecuadamente la indisponibilidad temporal.
+
+#### Ejemplo de implementación
+
+**1. Clase Fallback para ProductClientService:**
+```java
+@Component
+public class ProductClientServiceFallback implements ProductClientService {
+
+    @Override
+    public ResponseEntity<ProductProductServiceCollectionDtoResponse> findAll() {
+        return ResponseEntity.ok(new ProductProductServiceCollectionDtoResponse());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> findById(String productId) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> save(ProductDto productDto) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> update(ProductDto productDto) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<ProductDto> update(String productId, ProductDto productDto) {
+        return ResponseEntity.ok(new ProductDto());
+    }
+
+    @Override
+    public ResponseEntity<Boolean> deleteById(String productId) {
+        return ResponseEntity.ok(Boolean.FALSE);
+    }
+    
+}
+```
+
+**2. Asociación del fallback en la interfaz Feign Client:**
+```java
+@FeignClient(
+    name = "PRODUCT-SERVICE",
+    contextId = "productClientService",
+    path = "/product-service/api/products",
+    fallback = ProductClientServiceFallback.class
+)
+public interface ProductClientService {
+    // Métodos...
+}
+```
+
+#### Beneficios de la mejora
+
+- **Mayor resiliencia:** El sistema sigue funcionando y responde de forma predecible ante fallos de servicios remotos.
+- **Mejor experiencia de usuario:** Se evitan errores inesperados y se pueden mostrar mensajes claros cuando un servicio no está disponible.
+- **Facilidad de mantenimiento:** El manejo de fallos está centralizado y es fácilmente extensible a nuevos servicios.
+- **Preparación para escenarios reales:** Permite simular y manejar caídas de servicios en pruebas de carga y estrés, validando la robustez de la arquitectura.
+
+#### Servicios cubiertos
+
+- ProductClientService
+- OrderClientService
+- OrderItemClientService
+- PaymentClientService
+- FavouriteClientService
+- UserClientService
+- CredentialClientService
+- AddressClientService
+- CategoryClientService
+
+---
+
+Esta mejora refuerza el cumplimiento de los principios de microservicios y las mejores prácticas de arquitectura en la nube, asegurando un sistema robusto, escalable y preparado para escenarios de alta disponibilidad.
+
+### 2.3.2 Patrones de Diseño Extra Implementados
+
+#### Retry Pattern
+
+El **Retry Pattern** es un patrón de resiliencia que permite reintentar automáticamente operaciones fallidas, mitigando errores transitorios como fallos de red o caídas temporales de servicios dependientes. Su uso es fundamental en arquitecturas distribuidas para mejorar la robustez y la experiencia del usuario, evitando fallos inmediatos ante errores recuperables.
+
+##### ¿Cómo se implementó?
+
+- **Tecnología:** Se utilizó [Resilience4j Retry](https://resilience4j.readme.io/docs/retry) integrado con Spring Cloud.
+- **Cobertura:** El patrón se aplicó a todos los Feign Clients del microservicio `proxy-client`, permitiendo reintentos automáticos en la comunicación con servicios remotos.
+- **Configuración centralizada:** Los parámetros de retry (número de intentos, tiempo de espera entre reintentos, excepciones a capturar) se gestionan desde el archivo `application.yml`, facilitando su ajuste sin modificar el código fuente.
+
+##### Ejemplo de implementación
+
+**1. Configuración en `application.yml`:**
+```yaml
+resilience4j:
+  circuitbreaker:
+    instances:
+      # ...servicios...
+  retry:
+    instances:
+      productClientService:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+      categoryClientService:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+      # ...otros servicios...
+```
+
+**2. Anotación en el Feign Client:**
+```java
+@FeignClient(
+    name = "PRODUCT-SERVICE",
+    contextId = "productClientService",
+    path = "/product-service/api/products",
+    fallback = ProductClientServiceFallback.class
+)
+@Retry(name = "productClientService")
+public interface ProductClientService {
+    // Métodos...
+}
+```
+
+##### Beneficios de la implementación
+
+- **Mayor tolerancia a fallos transitorios:** El sistema reintenta automáticamente antes de fallar, mejorando la disponibilidad.
+- **Configuración flexible:** Permite ajustar la política de reintentos por servicio según la criticidad o el comportamiento esperado.
+- **No intrusivo:** No requiere modificar la lógica de negocio existente.
+- **Mejor experiencia de usuario:** Reduce la probabilidad de errores visibles por problemas temporales de red o servicios.
+
+##### Servicios cubiertos
+
+- ProductClientService
+- OrderClientService
+- OrderItemClientService
+- PaymentClientService
+- FavouriteClientService
+- UserClientService
+- CredentialClientService
+- AddressClientService
+- CategoryClientService
+- CartClientService
+- VerificationTokenClientService
+
+---
+
+Esta implementación refuerza la resiliencia de la arquitectura, alineándose con las mejores prácticas de sistemas distribuidos en la nube.
+
+#### Rate Limiter Pattern
+
+El **Rate Limiter Pattern** es un patrón de resiliencia que protege los microservicios de sobrecargas y abusos limitando la cantidad de solicitudes permitidas en un periodo de tiempo determinado. Su implementación es fundamental para evitar la degradación del servicio ante picos de tráfico o ataques de denegación de servicio (DoS), garantizando la disponibilidad y estabilidad del sistema.
+
+##### ¿Cómo se implementó?
+
+- **Tecnología:** Se utilizó [Resilience4j RateLimiter](https://resilience4j.readme.io/docs/ratelimiter) integrado con Spring Boot.
+- **Cobertura:** El patrón se aplicó en los endpoints REST de los recursos de productos y categorías en el microservicio `product-service`.
+- **Configuración centralizada:** Los parámetros del rate limiter (límite de solicitudes, periodo de refresco, timeout) se gestionan desde el archivo `application.yml`, permitiendo su ajuste sin modificar el código fuente.
+
+##### Ejemplo de implementación
+
+**1. Configuración en `application.yml`:**
+```yaml
+resilience4j:
+  ratelimiter:
+    instances:
+      productApi:
+        limit-for-period: 5
+        limit-refresh-period: 1s
+        timeout-duration: 0
+```
+Esto permite hasta 5 solicitudes por segundo a los endpoints protegidos bajo el nombre `productApi`.
+
+**2. Anotación en los recursos REST:**
+```java
+// ProductResource.java
+@GetMapping
+@RateLimiter(name = "productApi")
+public ResponseEntity<DtoCollectionResponse<ProductDto>> findAll() {
+    // ...
+}
+
+// CategoryResource.java
+@GetMapping
+@RateLimiter(name = "productApi")
+public ResponseEntity<DtoCollectionResponse<CategoryDto>> findAll() {
+    // ...
+}
+```
+La anotación `@RateLimiter(name = "productApi")` protege el endpoint, aplicando la política definida en la configuración.
+
+##### Beneficios de la implementación
+
+- **Protección ante sobrecarga:** Evita que un exceso de solicitudes degrade el rendimiento o cause caídas del servicio.
+- **Mejor experiencia de usuario:** Garantiza tiempos de respuesta estables y predecibles bajo alta demanda.
+- **Configuración flexible:** Permite ajustar los límites de solicitudes según la criticidad del endpoint o la capacidad del servicio.
+- **Fácil integración:** No requiere cambios en la lógica de negocio existente y puede aplicarse selectivamente a métodos o clases.
+
+##### Servicios y endpoints cubiertos
+
+- `product-service`:
+  - GET `/api/products` (listado de productos)
+  - GET `/api/categories` (listado de categorías)
+
+---
+
+Esta implementación fortalece la robustez y disponibilidad del sistema, alineándose con las mejores prácticas de arquitecturas distribuidas y microservicios en la
+
+
 ### 2.4 Ambientes Definidos
 
 El ciclo de vida del software se gestiona a través de tres ambientes principales:

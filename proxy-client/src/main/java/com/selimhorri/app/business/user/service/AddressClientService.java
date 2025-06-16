@@ -16,7 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.selimhorri.app.business.user.model.AddressDto;
 import com.selimhorri.app.business.user.model.response.AddressUserServiceCollectionDtoResponse;
 
-@FeignClient(name = "USER-SERVICE", contextId = "addressClientService", path = "/user-service/api/address", decode404 = true)
+import io.github.resilience4j.retry.annotation.Retry;
+
+@FeignClient(name = "USER-SERVICE", 
+contextId = "addressClientService", 
+path = "/user-service/api/address", 
+fallback = AddressClientServiceFallback.class,
+decode404 = true)
+@Retry(name = "addressClientService")
 public interface AddressClientService {
 	
 	@GetMapping

@@ -16,7 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.selimhorri.app.business.user.model.CredentialDto;
 import com.selimhorri.app.business.user.model.response.CredentialUserServiceCollectionDtoResponse;
 
-@FeignClient(name = "USER-SERVICE", contextId = "credentialClientService", path = "/user-service/api/credentials", decode404 = true)
+import io.github.resilience4j.retry.annotation.Retry;
+
+@FeignClient(name = "USER-SERVICE", 
+contextId = "credentialClientService", 
+path = "/user-service/api/credentials", 
+fallback = CredentialClientServiceFallback.class,
+decode404 = true)
+@Retry(name = "credentialClientService")
 public interface CredentialClientService {
 	
 	@GetMapping
