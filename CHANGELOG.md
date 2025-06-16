@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.1...v1.2.2) (2025-06-16)
+
+
+### Bug Fixes
+
+* correct path to Terraform files by adding 'infra/' prefix ([a8408f8](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/a8408f858f5f98d0b33642808d9924d2d0486f79))
+
 ## [1.2.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.2.0...v1.2.1) (2025-06-16)
 
 
