@@ -1,3 +1,12 @@
+# [1.4.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.3.1...v1.4.0) (2025-06-16)
+
+
+### Features
+
+* Add design patterns, Merge pull request [#2](https://github.com/SanjoDB/ecommerce-microservice-backend-app/issues/2) from SanjoDB/feature/DisignPatterns ([583ef57](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/583ef57bbecb31373ee1ad0576c5132ed1150b95))
+* Add Rate Limiter Desing Pattern AND Add documentation ([08fdb6f](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/08fdb6f256bf2c038a812e7455becba186fb0920))
+* Add Retry Desing Pattern AND Add documentation ([8750f96](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/8750f960249d90c877f1ba84ef2452666b65427f))
+
 ## [1.3.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.3.0...v1.3.1) (2025-06-16)
 
 
