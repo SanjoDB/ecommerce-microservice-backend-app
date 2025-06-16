@@ -31,7 +31,7 @@ locals {
 
 # VPC Module
 module "vpc" {
-  source = "../modules/vpc"
+  source = "../../modules/vpc"
   
   project_id   = var.project_id
   region       = var.region
@@ -46,7 +46,7 @@ module "vpc" {
 
 # GKE Module
 module "gke" {
-  source = "../modules/gke"
+  source = "../../modules/gke"
   
   project_id  = var.project_id
   region      = var.region
@@ -72,7 +72,7 @@ module "gke" {
 
 # Artifact Registry Module
 module "artifact_registry" {
-  source = "../modules/artifact-registry"
+  source = "../../modules/artifact-registry"
   
   project_id  = var.project_id
   location    = var.region
