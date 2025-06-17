@@ -55,7 +55,7 @@ pipeline {
         stage('Authenticate to GCP') {
             when {
                 anyOf {
-                    branch 'prod'; branch 'stage';
+                    branch 'master'; branch 'stage';
                 }
             }
             steps {
@@ -72,7 +72,7 @@ pipeline {
         stage('Get GKE Credentials') {
             when {
                 anyOf {
-                    branch 'prod'; branch 'stage';
+                    branch 'master'; branch 'stage';
                 }
             }
             steps {
