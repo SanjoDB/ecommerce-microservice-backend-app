@@ -104,7 +104,7 @@ pipeline {
             steps {
                 script {
                     def clusterName = "ecommerce-cluster-${env.TF_ENVIRONMENT}"
-                    def zone = env.TF_ENVIRONMENT == 'prod' ? 'us-central1' : 'us-central1-a'
+                    def zone = env.TF_ENVIRONMENT == 'prod' ? 'us-central1' : 'us-central1'
                     
                     bat """
                     echo 🔐 Obteniendo credenciales del cluster GKE...
