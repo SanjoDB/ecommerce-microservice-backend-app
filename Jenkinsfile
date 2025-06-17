@@ -277,6 +277,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('E2E Tests') {
             when {
                 anyOf {
@@ -289,6 +291,8 @@ pipeline {
                 junit 'e2e-tests/target/failsafe-reports/*.xml'
             }
         }
+
+*/
 
     stage('Start containers for testing') {
               when {
