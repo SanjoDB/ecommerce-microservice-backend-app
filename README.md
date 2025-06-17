@@ -885,69 +885,6 @@ Esto garantiza que el código fuente cumple con los estándares de calidad reque
 
 ---
 
-## Escaneo de Vulnerabilidades en Contenedores con Trivy
-
-Para asegurar la seguridad de las imágenes Docker, el pipeline ejecuta un escaneo automático con **Trivy** sobre cada microservicio. Este proceso identifica vulnerabilidades de severidad **HIGH** y **CRITICAL** antes de desplegar en entornos de staging o producción.
-
-- **Automatización:**  
-  El stage de Trivy se ejecuta en la rama `stage`, generando reportes HTML individuales para cada imagen Docker.
-- **Reporte visual:**  
-  Los resultados detallan el nivel de severidad, la versión afectada y enlaces a los reportes oficiales de cada vulnerabilidad (CVE).
-- **Acción ante hallazgos:**  
-  Si se detectan vulnerabilidades críticas, la pipeline puede detenerse automáticamente para evitar despliegues inseguros.
-
-**Fragmento de pipeline:**
-```groovy
-stage('Trivy Vulnerability Scan & Report') {
-    when { branch 'stage' }
-    environment {
-        TRIVY_PATH = 'C:/ProgramData/chocolatey/bin'
-    }
-    steps {
-        script {
-            env.PATH = "${TRIVY_PATH};${env.PATH}"
-            def services = [ ... ]
-            bat """
-            if not exist trivy-reports (
-                mkdir trivy-reports
-            )
-            """
-            services.each { service ->
-                def reportPath = "trivy-reports\\${service}.html"
-                echo "🔍 Escaneando imagen ${IMAGE_TAG} con Trivy para ${service}..."
-                bat """
-                trivy image --format template ^
-                    --template "@C:/ProgramData/chocolatey/lib/trivy/tools/contrib/html.tpl" ^
-                    --severity HIGH,CRITICAL ^
-                    -o ${reportPath} ^
-                    ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}
-                """
-            }
-            publishHTML(target: [
-                allowMissing: true,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'trivy-reports',
-                reportFiles: '*.html',
-                reportName: 'Trivy Scan Report'
-            ])
-        }
-    }
-}
-```
-
-**Ejemplo de reporte Trivy:**
-
-![Reporte Trivy](images/trivi1.png)
-
-- **Severity:** Nivel de criticidad (CRITICAL/HIGH)
-- **Installed Version / Fixed Version:** Versión instalada y versión corregida
-- **Links:** Acceso directo a los reportes CVE
-
-Esta integración asegura que solo imágenes seguras y auditadas sean promovidas a los entornos superiores, reforzando la seguridad del ecosistema de microservicios.
-
----
-
 ## 5. Diseño y Ejecución de Pruebas
 
 La calidad del software es un pilar fundamental en sistemas distribuidos. Este proyecto implementa una estrategia de testing integral, cubriendo desde la lógica interna de cada microservicio hasta la experiencia real del usuario y el rendimiento bajo carga. Cada tipo de prueba aporta una capa de confianza y permite detectar errores en diferentes etapas del ciclo de vida.
@@ -1236,7 +1173,7 @@ La implementación del pipeline de CI/CD requirió la instalación y configuraci
 
 ![alt text](images/image_panel_deafult.png)
 
-Una vez instalado Jenkins, se procedió con la configuración de credenciales para acceder a Docker Hub donde se almacenarían las imágenes de los microservicios. Estas credenciales fueron configuradas con el usuario `sanjodb` que se utilizó consistentemente a lo largo del proyecto para el almacenamiento de todas las imágenes Docker. Tambien un access token de GitHub.
+Una vez instalado Jenkins, se procedió con la configuración de credenciales para acceder a Docker Hub donde se almacenarían las imágenes de los microservicios. Estas credenciales fueron configuradas con el usuario `sanjodb` que se utilizó consistentemente a lo largo del proyecto para el almacenamiento de todas las imágenes Docker. Siendo estas credenciales necesarias para que Jenkins pueda subir las imágenes construidas al repositorio de Docker Hub.
 
 ![alt text](images/image_credentials.png)
 
@@ -1529,3 +1466,179 @@ A continuación se muestra un ejemplo del panel de control de GCP, donde se visu
 Esta visibilidad permite tomar decisiones informadas sobre el dimensionamiento y optimización de los recursos, asegurando la sostenibilidad del proyecto tanto en desarrollo como en producción.
 
 ---
+
+## 8. Monitoreo, Observabilidad y Logging Centralizado
+
+### 8.1 Prometheus: Recolección de Métricas y Gestión de Alertas
+
+Prometheus es el sistema principal para la recolección de métricas de todos los microservicios y del clúster de Kubernetes. Permite consultar el estado de los servicios, recursos y definir reglas de alerta para situaciones críticas.
+
+- **Recolección de métricas técnicas y de negocio**
+- **Alertas automáticas ante fallos o uso excesivo de recursos**
+- **Integración con Grafana para dashboards visuales**
+
+![Prometheus UI](images/prome1.jpg)
+
+#### Reglas de Alertas en Prometheus
+
+Prometheus incluye reglas para detectar caídas de pods, errores en la recarga de configuración y problemas en el clúster.
+
+![Prometheus Alertas](images/prome2.jpg)
+![Prometheus Alertas 2](images/prome3.jpg)
+
+---
+
+### 8.2 Grafana: Visualización de Dashboards
+
+Grafana consume las métricas de Prometheus y permite crear dashboards personalizados para monitorear la salud de los servicios y la infraestructura.
+
+- **Dashboards de uso de CPU, memoria y estado de pods**
+- **Visualización de métricas técnicas y de negocio**
+- **Alertas visuales y notificaciones**
+
+![Grafana Overview](images/grafana1.jpg)
+![Grafana Overview 2](images/grafana2.jpg)
+![Grafana Cluster](images/grafana3.jpg)
+![Grafana Nodes/Pods](images/grafana4.jpg)
+![Grafana Pods Detalle](images/grafana5.jpg)
+
+---
+
+### 8.3 ELK Stack: Centralización de Logs
+
+El stack ELK (Elasticsearch, Logstash, Kibana, Filebeat) centraliza y visualiza los logs de todos los microservicios y componentes del clúster.
+
+- **Elasticsearch:** Almacena y permite búsquedas rápidas sobre los logs.
+- **Logstash:** Procesa y transforma los logs antes de almacenarlos.
+- **Kibana:** Visualiza los logs y facilita el análisis y monitoreo.
+- **Filebeat:** Recolecta logs de los pods y los envía a Logstash/Elasticsearch.
+
+![ELK Stack](images/elk.jpg)
+
+#### Acceso y Uso
+
+- **Kibana:** Acceso web para consultar y visualizar logs.
+- **Elasticsearch:** Acceso para búsquedas avanzadas.
+- **Logstash y Filebeat:** Funcionan en segundo plano recolectando y procesando logs.
+
+---
+
+### 8.4 Estado de los Pods en Kubernetes
+
+El monitoreo de pods es esencial para asegurar la disponibilidad y el correcto funcionamiento de los microservicios.
+
+- **Visualización del estado de los pods en el clúster**
+- **Detección de pods caídos o en estado no saludable**
+- **Escalado y reinicio automático según métricas**
+
+![Pods Kubernetes](images/pods.jpg)
+
+---
+
+### 8.5 Alertas y Notificaciones
+
+El sistema de monitoreo está configurado para enviar alertas automáticas por correo electrónico ante eventos críticos, como la caída de un servicio o el uso excesivo de recursos.
+
+![Alertas](images/alertas.png)
+
+---
+
+## 9. Seguridad y Pruebas de Vulnerabilidades
+
+### 9.1 Escaneo de Vulnerabilidades en Contenedores con Trivy
+
+El pipeline ejecuta un escaneo automático con **Trivy** sobre cada imagen Docker antes de desplegar en entornos de staging o producción.
+
+- **Detección de vulnerabilidades HIGH y CRITICAL**
+- **Reporte HTML integrado en Jenkins**
+- **Bloqueo automático del pipeline ante hallazgos críticos**
+
+Para asegurar la seguridad de las imágenes Docker, el pipeline ejecuta un escaneo automático con **Trivy** sobre cada microservicio. Este proceso identifica vulnerabilidades de severidad **HIGH** y **CRITICAL** antes de desplegar en entornos de staging o producción.
+
+- **Automatización:**  
+  El stage de Trivy se ejecuta en la rama `stage`, generando reportes HTML individuales para cada imagen Docker.
+- **Reporte visual:**  
+  Los resultados detallan el nivel de severidad, la versión afectada y enlaces a los reportes oficiales de cada vulnerabilidad (CVE).
+- **Acción ante hallazgos:**  
+  Si se detectan vulnerabilidades críticas, la pipeline puede detenerse automáticamente para evitar despliegues inseguros.
+
+**Fragmento de pipeline:**
+```groovy
+stage('Trivy Vulnerability Scan & Report') {
+    when { branch 'stage' }
+    environment {
+        TRIVY_PATH = 'C:/ProgramData/chocolatey/bin'
+    }
+    steps {
+        script {
+            env.PATH = "${TRIVY_PATH};${env.PATH}"
+            def services = [ ... ]
+            bat """
+            if not exist trivy-reports (
+                mkdir trivy-reports
+            )
+            """
+            services.each { service ->
+                def reportPath = "trivy-reports\\${service}.html"
+                echo "🔍 Escaneando imagen ${IMAGE_TAG} con Trivy para ${service}..."
+                bat """
+                trivy image --format template ^
+                    --template "@C:/ProgramData/chocolatey/lib/trivy/tools/contrib/html.tpl" ^
+                    --severity HIGH,CRITICAL ^
+                    -o ${reportPath} ^
+                    ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}
+                """
+            }
+            publishHTML(target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'trivy-reports',
+                reportFiles: '*.html',
+                reportName: 'Trivy Scan Report'
+            ])
+        }
+    }
+}
+```
+
+**Ejemplo de reporte Trivy:**
+
+![Reporte Trivy](images/trivi1.png)
+
+- **Severity:** Nivel de criticidad (CRITICAL/HIGH)
+- **Installed Version / Fixed Version:** Versión instalada y versión corregida
+- **Links:** Acceso directo a los reportes CVE
+
+Esta integración asegura que solo imágenes seguras y auditadas sean promovidas a los entornos superiores, reforzando la seguridad del ecosistema de microservicios.
+
+![Reporte Trivy](images/trivi1.png)
+
+---
+
+### 9.2 Pruebas de Seguridad Automatizadas (OWASP ZAP)
+
+Se integró OWASP ZAP para pruebas de seguridad dinámica sobre los endpoints HTTP expuestos por los microservicios.
+
+- **Detección de vulnerabilidades en tiempo real**
+- **Reporte HTML integrado en Jenkins**
+
+![Reporte ZAP](images/zap.jpg)
+
+---
+
+## 10. Métricas Técnicas y de Negocio
+
+Además de las métricas técnicas (CPU, memoria, disponibilidad), se recolectan métricas de negocio como:
+
+- Pedidos por minuto
+- Tasa de registro de usuarios
+- Valor promedio del pedido (AOV)
+
+Estas métricas se exponen a través de endpoints personalizados y se visualizan en Grafana.
+
+![Métricas Técnicas](images/metricas.jpg)
+![Métricas Técnicas 2](images/metricas2.jpg)
+
+---
+
