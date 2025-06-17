@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.4.0...v1.4.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* First try to fix github actions pipelines ([a326f1e](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/a326f1eddd4e61b4b540512c47287adb6ababd33))
+
 # [1.4.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.3.1...v1.4.0) (2025-06-16)
 
 
