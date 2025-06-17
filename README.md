@@ -1437,7 +1437,7 @@ En las pruebas de carga, el favourite-service mostró un rendimiento muy aceptab
 
 **Order Service**
 
-Este servicio presentó el mejor rendimiento en las pruebas de carga. Con un tiempo de respuesta promedio de apenas 21.37 ms y un percentil 95 de 12 ms, el order-service maneja las peticiones con gran rapidez. Su RPS fue alrededor de 2.5, también sin errores. Estas métricas reflejan una alta eficiencia y bajo consumo de recursos, posicionándolo como el servicio más optimizado de los tres en este escenario.
+Este servicio presentó el mejor rendimiento en las pruebas de carga. Con un tiempo de respuesta promedio de apenas 21.37 ms y un percentil 95 de 12 ms, el order-service maneja las peticiones con gran rapidez. Su RPS fue alrededor de 2.5, sin errores. Estas métricas reflejan una alta eficiencia y bajo consumo de recursos, posicionándolo como el servicio más optimizado de los tres en este escenario.
 
 ![alt text](images/image_order_load.png)
 ![alt text](images/total_requests_per_second_order_load.png)
@@ -1512,3 +1512,20 @@ El proceso concluye con la generación automática de release notes usando `conv
 ![alt text](images/image_changelog_gen.png)
 
 ![alt text](images/image_release_notes_vista.png)
+
+## 7. Costos de Infraestructura en la Nube
+
+La gestión eficiente de los costos es fundamental en cualquier arquitectura basada en la nube. Durante el desarrollo y pruebas del proyecto, se utilizó la capa gratuita de Google Cloud Platform (GCP), lo que permitió experimentar con recursos reales sin incurrir en gastos significativos.
+
+A continuación se muestra un ejemplo del panel de control de GCP, donde se visualiza el consumo de créditos gratuitos y el presupuesto restante:
+
+![Panel de costos GCP](images/costos.png)
+
+- **Créditos usados:** $50,456 de $1,235,798 créditos disponibles en la prueba gratuita.
+- **Fecha de vencimiento:** 13 de septiembre de 2025.
+- **Control de presupuesto:** Se configuraron alertas para evitar sobrecostos y asegurar el uso responsable de los recursos.
+- **Recomendaciones:** GCP sugiere productos como máquinas virtuales, bases de datos y herramientas de análisis, facilitando la gestión y escalabilidad de la infraestructura.
+
+Esta visibilidad permite tomar decisiones informadas sobre el dimensionamiento y optimización de los recursos, asegurando la sostenibilidad del proyecto tanto en desarrollo como en producción.
+
+---
