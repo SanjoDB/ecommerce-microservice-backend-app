@@ -64,8 +64,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('Get GKE Credentials') {
             steps {
                 script {
@@ -77,8 +75,6 @@ pipeline {
                 }
             }
         }
-
-*/
 
         stage('Checkout') {
             steps {
@@ -111,8 +107,6 @@ pipeline {
                 }
             }
         }
-
-/*
 
         stage('Run SonarQube Analysis') {
             when { branch 'master' }
@@ -215,6 +209,8 @@ pipeline {
             }
         }
 
+/*
+
         stage('Build & Push Docker Images') {
             when { anyOf { branch 'stage'; branch 'master' } }
             steps {
@@ -269,8 +265,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('E2E Tests') {
             when {
                 anyOf {
@@ -283,8 +277,6 @@ pipeline {
                 junit 'e2e-tests/target/failsafe-reports/*.xml'
             }
         }
-
-*/
 
     stage('Start containers for testing') {
               when {
@@ -723,8 +715,6 @@ pipeline {
             }
         }
 
-/*
-
         stage('Waiting approval for deployment') {
             when { branch 'master' }
             steps {
@@ -741,24 +731,6 @@ pipeline {
                     )
                     input message: 'Approve deployment to production (kubernetes) ?', ok: 'Deploy'
                 }
-            }
-        }
-
-        stage('Deploy Observability Stack') {
-            when { branch 'master' }
-            steps {
-                bat '''
-                    echo "📊 Deploying Prometheus and Grafana with ..."
-
-                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-                    helm repo update
-
-                    helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack ^
-                    --namespace monitoring --create-namespace ^
-                    -f monitoring/values.yaml
-                 
-                    echo "✅ Observability stack deployed successfully!"
-                '''
             }
         }
 
@@ -792,7 +764,7 @@ pipeline {
             steps {
                 script {
                     SERVICES.split().each { svc ->
-                        if (!['locust'].contains(svc)) {
+                        if (!['locust', 'shipping-service'].contains(svc)) {
                             bat "kubectl apply -f k8s\\${svc} -n ${K8S_NAMESPACE}"
                             bat "kubectl set image deployment/${svc} ${svc}=${DOCKERHUB_USER}/${svc}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
                             bat "kubectl set env deployment/${svc} SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -n ${K8S_NAMESPACE}"
@@ -802,8 +774,6 @@ pipeline {
                 }
             }
         }
-
-*/
 
         stage('Generate and Archive Release Notes') {
             when {
