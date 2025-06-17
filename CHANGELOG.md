@@ -1,3 +1,10 @@
+## [1.5.3](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.5.2...v1.5.3) (2025-06-17)
+
+
+### Bug Fixes
+
+* branch name change ([79f191a](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/79f191a90d7f5abb27f652b7f507819ee326ac1d))
+
 ## [1.5.2](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.5.1...v1.5.2) (2025-06-17)
 
 
