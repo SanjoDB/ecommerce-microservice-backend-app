@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.5.1...v1.5.2) (2025-06-17)
+
+
+### Bug Fixes
+
+* fix a duplicate section on general documentation ([03338fe](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/03338fe61e3ae48cf9499d7288a09a42312ac9fa))
+
 ## [1.5.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.5.0...v1.5.1) (2025-06-17)
 
 
