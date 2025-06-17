@@ -60,14 +60,14 @@ spec:
             httpGet:
               path: /shipping-service/actuator/health 
               port: 8600
-            initialDelaySeconds: 180 
+            initialDelaySeconds: 240 
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /shipping-service/actuator/health 
               port: 8600
-            initialDelaySeconds: 180
+            initialDelaySeconds: 240
             periodSeconds: 10
             failureThreshold: 3
           volumeMounts:

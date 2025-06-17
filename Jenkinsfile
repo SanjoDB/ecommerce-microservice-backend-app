@@ -734,24 +734,6 @@ pipeline {
             }
         }
 
-        stage('Deploy Observability Stack') {
-            when { branch 'master' }
-            steps {
-                bat '''
-                    echo "📊 Deploying Prometheus and Grafana with ..."
-
-                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-                    helm repo update
-
-                    helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack ^
-                    --namespace monitoring --create-namespace ^
-                    -f monitoring/values.yaml
-                 
-                    echo "✅ Observability stack deployed successfully!"
-                '''
-            }
-        }
-
         stage('Deploy Common Config') {
             when { anyOf { branch 'master' } }
             steps {
