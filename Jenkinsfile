@@ -232,7 +232,7 @@ pipeline {
         stage('Unit Tests') {
             when {
                 anyOf {
-                    branch 'dev'; branch 'stage'
+                    branch 'dev'; branch 'stage';
                     expression { env.BRANCH_NAME.startsWith('feature/') }
                 }
             }
@@ -243,6 +243,18 @@ pipeline {
                     }
                 }
                 junit '**/target/surefire-reports/*.xml'
+
+                publishHTML(target: [
+                    reportDir: 'product-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'Cobertura product-service'
+                ])
+                
+                publishHTML(target: [
+                    reportDir: 'user-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'Cobertura user-service'
+                ])
             }
         }
 
