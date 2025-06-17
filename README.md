@@ -68,6 +68,8 @@ Para garantizar un flujo de trabajo ordenado, colaborativo y seguro, el reposito
   - Todos los desarrolladores integran aquí sus cambios antes de pasar a `stage`.
   - Es el espacio para validación temprana, pruebas unitarias y de integración.
 
+![Ramas del repositorio](images/branch.png)
+
 #### Ramas de soporte
 
 - **feature/\***
@@ -727,8 +729,6 @@ El ciclo de vida del software se gestiona a través de tres ambientes principale
 - **stage:** Entorno de integración y pruebas end-to-end, simula condiciones de producción.
 - **master (producción):** Entorno estable y seguro, donde se ejecuta la versión aprobada del sistema.
 
-Cada ambiente cuenta con configuración propia y pipelines de CI/CD dedicados, permitiendo despliegues independientes y controlados.
-
 ## 3. Configuración del Entorno
 
 ### 3.1 Jenkins (Ejecución Local en Windows con UI)
@@ -802,7 +802,14 @@ Esta estructura promueve la modularidad, la escalabilidad y la facilidad de mant
 
 ## 4. Pipelines de Integración y Entrega Continua
 
-La automatización del ciclo de vida del software es clave para la agilidad y la calidad. En este proyecto, una pipeline declarativa en Jenkins gestiona de forma inteligente los flujos de integración y despliegue para las ramas principales (`dev`, `stage`, `master`). Esto asegura que cada entorno reciba el nivel de validación y control adecuado, minimizando riesgos y acelerando la entrega de valor.
+La automatización del ciclo de vida del software es clave para la agilidad y la calidad. En este proyecto, una pipeline declarativa en Jenkins gestiona de forma inteligente los flujos de integración y despliegue para las ramas principales (`dev`, `stage`, `master`). Esto asegura que cada entorno reciba el nivel de validación y control adecuado, minimizando riesgos y acelerando la entrega de valor. Mientras que otro pipeline declarado en Jenkins se encarga de gestionar toda la configuracion y montaje de la infraestructura del proyecto
+
+![Pipelines Generales](images/branch3.png)
+
+## Pipeline Principal
+gestiona de forma inteligente los flujos de integración y despliegue para las ramas principales (`dev`, `stage`, `master`), incluyendo herramientas de monitoreo, reportes y demas montajes
+
+![Historias de usuario en Jira](images/branch1.png)
 
 ### 4.1 Pipeline para entorno de desarrollo (`dev`)
 
@@ -840,9 +847,104 @@ El entorno de producción es el más crítico y requiere validaciones adicionale
 
 Esto garantiza trazabilidad, control y calidad en cada entrega al usuario final.
 
+## Pipeline de infraestructura
+
+![Pipeline de infra](images/branch2.png)
+### 4.3 Descripción de la Infraestructura del Proyecto
+
+La infraestructura del proyecto está definida y gestionada en la carpeta `Infra`, la cual centraliza todos los recursos y configuraciones necesarias para el despliegue automatizado y la operación estable del ecosistema de microservicios. Esta carpeta contiene tanto la pipeline de infraestructura como los manifiestos terraform y scripts para levantar los servicios fundamentales que soportan la arquitectura.
+
+#### Beneficios de la Infraestructura Centralizada
+
+- **Automatización completa:** Todo el ciclo de provisión y despliegue de infraestructura es reproducible y versionado.
+- **Escalabilidad:** Permite modificar o escalar servicios de soporte sin afectar los microservicios de negocio.
+- **Mantenibilidad:** Facilita la actualización y el monitoreo de los servicios core desde un único punto.
+- **Seguridad y consistencia:** La gestión centralizada de configuración y secretos asegura coherencia y control de acceso.
+
+
 ### 4.4 Resumen del manejo de ramas y pipeline
 
 La pipeline única, combinada con la directiva `when { branch 'nombre' }`, permite adaptar el flujo a cada entorno, asegurando que cada rama reciba el tratamiento adecuado y que los despliegues sean seguros, trazables y eficientes.
+
+---
+#### **Resultados de SonarQube**
+
+El análisis automático de calidad de código se realiza con SonarQube en cada pipeline. Todos los microservicios del proyecto son evaluados bajo los criterios de seguridad, mantenibilidad y fiabilidad definidos en el Quality Gate.
+
+- **Resultado global:**  
+  Todos los microservicios han superado el Quality Gate, mostrando el indicador "Passed".
+- **Indicadores clave:**  
+  - **Seguridad:** Sin vulnerabilidades detectadas.
+  - **Fiabilidad:** Sin bugs críticos ni bloqueantes.
+  - **Mantenibilidad:** Código limpio, sin deuda técnica significativa.
+
+Esto garantiza que el código fuente cumple con los estándares de calidad requeridos antes de ser promovido a los entornos superiores.
+
+![Dashboard SonarQube](images/image_unitarios_pipelineJ.png)
+![Detalle SonarQube](images/image_test_unitarios.png)
+
+---
+
+## Escaneo de Vulnerabilidades en Contenedores con Trivy
+
+Para asegurar la seguridad de las imágenes Docker, el pipeline ejecuta un escaneo automático con **Trivy** sobre cada microservicio. Este proceso identifica vulnerabilidades de severidad **HIGH** y **CRITICAL** antes de desplegar en entornos de staging o producción.
+
+- **Automatización:**  
+  El stage de Trivy se ejecuta en la rama `stage`, generando reportes HTML individuales para cada imagen Docker.
+- **Reporte visual:**  
+  Los resultados detallan el nivel de severidad, la versión afectada y enlaces a los reportes oficiales de cada vulnerabilidad (CVE).
+- **Acción ante hallazgos:**  
+  Si se detectan vulnerabilidades críticas, la pipeline puede detenerse automáticamente para evitar despliegues inseguros.
+
+**Fragmento de pipeline:**
+```groovy
+stage('Trivy Vulnerability Scan & Report') {
+    when { branch 'stage' }
+    environment {
+        TRIVY_PATH = 'C:/ProgramData/chocolatey/bin'
+    }
+    steps {
+        script {
+            env.PATH = "${TRIVY_PATH};${env.PATH}"
+            def services = [ ... ]
+            bat """
+            if not exist trivy-reports (
+                mkdir trivy-reports
+            )
+            """
+            services.each { service ->
+                def reportPath = "trivy-reports\\${service}.html"
+                echo "🔍 Escaneando imagen ${IMAGE_TAG} con Trivy para ${service}..."
+                bat """
+                trivy image --format template ^
+                    --template "@C:/ProgramData/chocolatey/lib/trivy/tools/contrib/html.tpl" ^
+                    --severity HIGH,CRITICAL ^
+                    -o ${reportPath} ^
+                    ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}
+                """
+            }
+            publishHTML(target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'trivy-reports',
+                reportFiles: '*.html',
+                reportName: 'Trivy Scan Report'
+            ])
+        }
+    }
+}
+```
+
+**Ejemplo de reporte Trivy:**
+
+![Reporte Trivy](images/trivi1.png)
+
+- **Severity:** Nivel de criticidad (CRITICAL/HIGH)
+- **Installed Version / Fixed Version:** Versión instalada y versión corregida
+- **Links:** Acceso directo a los reportes CVE
+
+Esta integración asegura que solo imágenes seguras y auditadas sean promovidas a los entornos superiores, reforzando la seguridad del ecosistema de microservicios.
 
 ---
 
