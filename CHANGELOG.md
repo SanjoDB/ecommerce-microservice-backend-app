@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.5.0...v1.5.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* Change Copy route in Dockerfiles in every service, trying to fix Github Actions Pipelines ([8a46f3f](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/8a46f3fa918d70ac093c05ebf454d504d4fb55a3))
+
 # [1.5.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.4.1...v1.5.0) (2025-06-17)
 
 
