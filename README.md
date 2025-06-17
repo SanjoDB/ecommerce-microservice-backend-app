@@ -880,8 +880,7 @@ El análisis automático de calidad de código se realiza con SonarQube en cada 
 
 Esto garantiza que el código fuente cumple con los estándares de calidad requeridos antes de ser promovido a los entornos superiores.
 
-![Dashboard SonarQube](images/image_unitarios_pipelineJ.png)
-![Detalle SonarQube](images/image_test_unitarios.png)
+![Dashboard SonarQube](images/sonar.png)
 
 ---
 
@@ -1477,14 +1476,14 @@ Prometheus es el sistema principal para la recolección de métricas de todos lo
 - **Alertas automáticas ante fallos o uso excesivo de recursos**
 - **Integración con Grafana para dashboards visuales**
 
-![Prometheus UI](images/prome1.jpg)
+![Prometheus UI](images/prome1.png)
 
 #### Reglas de Alertas en Prometheus
 
 Prometheus incluye reglas para detectar caídas de pods, errores en la recarga de configuración y problemas en el clúster.
 
-![Prometheus Alertas](images/prome2.jpg)
-![Prometheus Alertas 2](images/prome3.jpg)
+![Prometheus Alertas](images/prome2.png)
+![Prometheus Alertas 2](images/prome3.png)
 
 ---
 
@@ -1496,11 +1495,11 @@ Grafana consume las métricas de Prometheus y permite crear dashboards personali
 - **Visualización de métricas técnicas y de negocio**
 - **Alertas visuales y notificaciones**
 
-![Grafana Overview](images/grafana1.jpg)
-![Grafana Overview 2](images/grafana2.jpg)
-![Grafana Cluster](images/grafana3.jpg)
-![Grafana Nodes/Pods](images/grafana4.jpg)
-![Grafana Pods Detalle](images/grafana5.jpg)
+![Grafana Overview](images/grafana1.png)
+![Grafana Overview 2](images/grafana2.png)
+![Grafana Cluster](images/grafana3.png)
+![Grafana Nodes/Pods](images/grafana4.png)
+![Grafana Pods Detalle](images/grafana5.png)
 
 ---
 
@@ -1513,7 +1512,7 @@ El stack ELK (Elasticsearch, Logstash, Kibana, Filebeat) centraliza y visualiza 
 - **Kibana:** Visualiza los logs y facilita el análisis y monitoreo.
 - **Filebeat:** Recolecta logs de los pods y los envía a Logstash/Elasticsearch.
 
-![ELK Stack](images/elk.jpg)
+![ELK Stack](images/ELK.png)
 
 #### Acceso y Uso
 
@@ -1531,7 +1530,7 @@ El monitoreo de pods es esencial para asegurar la disponibilidad y el correcto f
 - **Detección de pods caídos o en estado no saludable**
 - **Escalado y reinicio automático según métricas**
 
-![Pods Kubernetes](images/pods.jpg)
+![Pods Kubernetes](images/pods.png)
 
 ---
 
@@ -1539,7 +1538,7 @@ El monitoreo de pods es esencial para asegurar la disponibilidad y el correcto f
 
 El sistema de monitoreo está configurado para enviar alertas automáticas por correo electrónico ante eventos críticos, como la caída de un servicio o el uso excesivo de recursos.
 
-![Alertas](images/alertas.png)
+![Alertas](images/notificacion.png)
 
 ---
 
@@ -1612,8 +1611,6 @@ stage('Trivy Vulnerability Scan & Report') {
 
 Esta integración asegura que solo imágenes seguras y auditadas sean promovidas a los entornos superiores, reforzando la seguridad del ecosistema de microservicios.
 
-![Reporte Trivy](images/trivi1.png)
-
 ---
 
 ### 9.2 Pruebas de Seguridad Automatizadas (OWASP ZAP)
@@ -1623,7 +1620,7 @@ Se integró OWASP ZAP para pruebas de seguridad dinámica sobre los endpoints HT
 - **Detección de vulnerabilidades en tiempo real**
 - **Reporte HTML integrado en Jenkins**
 
-![Reporte ZAP](images/zap.jpg)
+![Reporte ZAP](images/zap.png)
 
 ---
 
@@ -1637,8 +1634,105 @@ Además de las métricas técnicas (CPU, memoria, disponibilidad), se recolectan
 
 Estas métricas se exponen a través de endpoints personalizados y se visualizan en Grafana.
 
-![Métricas Técnicas](images/metricas.jpg)
-![Métricas Técnicas 2](images/metricas2.jpg)
+![Métricas Técnicas](images/metricas.png)
+![Métricas Técnicas 2](images/metricas2.png)
 
 ---
 
+## 11. Aprobaciones para Despliegue en Producción
+
+La seguridad y el control en los despliegues a producción son fundamentales en cualquier proceso de DevOps profesional. Por ello, la pipeline principal de CI/CD implementa un **stage de aprobación manual** antes de ejecutar cualquier despliegue en el entorno productivo (`master`). Este mecanismo garantiza que solo versiones revisadas y autorizadas lleguen a los usuarios finales, permitiendo una validación adicional por parte del equipo responsable.
+
+### 11.1 Stage de Approval en la Pipeline
+
+En el `Jenkinsfile`, el stage `Waiting approval for deployment` se activa exclusivamente en la rama `master`. Este stage realiza dos acciones clave:
+
+1. **Notificación por correo electrónico:**  
+   Se envía automáticamente un email a los responsables del proyecto (`ingesoft.proyecto@gmail.com`) informando que el build está listo para ser desplegado en producción y requiere revisión y aprobación manual.
+
+2. **Input manual en Jenkins:**  
+   El pipeline se detiene y solicita una aprobación explícita desde la interfaz de Jenkins. Solo tras la confirmación manual, el despliegue continúa hacia el clúster de Kubernetes en producción.
+
+**Fragmento real del Jenkinsfile:**
+```groovy
+stage('Waiting approval for deployment') {
+    when { branch 'master' }
+    steps {
+        script {
+            emailext(
+                to: 'ingesoft.proyecto@gmail.com',
+                subject: "Action Required: Approval Needed for Deploy of Build #${env.BUILD_NUMBER}",
+                body: """\
+                The build #${env.BUILD_NUMBER} for branch *${env.BRANCH_NAME}* has completed and is pending approval for deployment.
+                Please review the changes and approve or abort
+                You can access the build details here:
+                ${env.BUILD_URL}
+                """
+            )
+            input message: 'Approve deployment to production (kubernetes) ?', ok: 'Deploy'
+        }
+    }
+}
+```
+
+### 11.2 Flujo de Aprobación
+
+- **Finalización de pruebas y build:** El pipeline ejecuta todas las pruebas y construye las imágenes Docker.
+- **Notificación automática:** Se envía un correo a los responsables con el enlace al build y detalles del despliegue pendiente.
+- **Revisión y validación:** Un responsable revisa los resultados, logs y reportes generados.
+- **Aprobación manual:** Desde la UI de Jenkins, se debe hacer clic en "Deploy" para continuar.
+- **Despliegue en producción:** Solo tras la aprobación, el pipeline ejecuta los stages de despliegue en Kubernetes.
+
+### 11.3 Beneficios del Proceso de Approval
+
+- **Prevención de errores:** Evita despliegues accidentales o automáticos sin revisión humana.
+- **Trazabilidad:** Queda registro de quién y cuándo se aprobó cada despliegue.
+- **Cumplimiento de políticas:** Facilita auditorías y cumplimiento de normativas internas o externas.
+- **Colaboración:** Permite que varios miembros del equipo participen en la validación final.
+
+---
+
+Este mecanismo de aprobación manual refuerza la seguridad, la calidad y la gobernanza del proceso de entrega continua, alineándose con las mejores prácticas de DevOps y despliegue
+
+## 12 Informe de Cobertura y Calidad de Pruebas
+
+La cobertura de pruebas es un indicador clave de la calidad del software, ya que mide el porcentaje de código ejecutado durante la ejecución de los tests. Para este proyecto, se utilizó **JaCoCo** como herramienta de análisis de cobertura, generando reportes detallados para cada microservicio principal.
+
+A continuación se presenta un resumen de los resultados obtenidos, acompañado de capturas reales de los reportes generados tras la ejecución de las pruebas unitarias e integración en el pipeline de Jenkins.
+
+### 12.1 Cobertura en user-service
+
+![Reporte de cobertura user-service](images/reporte-coverage2.png)
+
+- **Cobertura total de instrucciones:** 12%
+- **Cobertura de ramas:** 0%
+- **Clases cubiertas:** 43
+- **Métodos cubiertos:** 395 de 470
+- **Líneas cubiertas:** 384 de 470
+
+**Observaciones:**
+- La cobertura se concentra principalmente en los paquetes de dominio y DTOs.
+- Los métodos críticos de la lógica de negocio y los controladores REST cuentan con pruebas, pero existen áreas de oportunidad para ampliar la cobertura en clases auxiliares y excepciones.
+- Se recomienda incrementar la cobertura en los paquetes de servicios y helpers para fortalecer la robustez del microservicio.
+
+### 12.2 Cobertura en product-service
+
+![Reporte de cobertura product-service](images/reporte-coverage.png)
+
+- **Cobertura total de instrucciones:** 18%
+- **Cobertura de ramas:** 0%
+- **Clases cubiertas:** 26
+- **Métodos cubiertos:** 218 de 276
+- **Líneas cubiertas:** 172 de 240
+
+**Observaciones:**
+- La cobertura es mayor en los paquetes de dominio y DTOs, reflejando un buen nivel de pruebas sobre la lógica de datos.
+- Los servicios y controladores principales están cubiertos, pero se identifican áreas sin pruebas en helpers y excepciones.
+- Se recomienda ampliar la cobertura en los controladores y servicios para alcanzar un mayor porcentaje y reducir riesgos de regresión.
+
+### 12.3 Análisis General
+- **Cobertura global:** Aunque los microservicios cuentan con pruebas en los componentes más críticos, el porcentaje global es bajo respecto a los estándares recomendados para entornos productivos.
+- **Áreas de mejora:** Se identifican oportunidades para incrementar la cobertura en clases utilitarias, excepciones y lógica de negocio secundaria.
+
+**Conclusión:**  
+El análisis de cobertura evidencia una base de pruebas funcional, pero con margen de mejora para alcanzar una mayor confianza y calidad en el software. Se recomienda establecer como meta un incremento progresivo de la cobertura, priorizando los módulos de mayor impacto en la operación del sistema.
