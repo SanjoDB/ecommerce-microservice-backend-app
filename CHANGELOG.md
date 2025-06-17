@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.4.1...v1.5.0) (2025-06-17)
+
+
+### Features
+
+* add JaCoCo reports ([bf31d3b](https://github.com/SanjoDB/ecommerce-microservice-backend-app/commit/bf31d3bfc13531af5b0da7683dcc2eeff1dd925d))
+
 ## [1.4.1](https://github.com/SanjoDB/ecommerce-microservice-backend-app/compare/v1.4.0...v1.4.1) (2025-06-17)
 
 
