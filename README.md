@@ -882,6 +882,56 @@ Esto garantiza que el código fuente cumple con los estándares de calidad reque
 
 ![Dashboard SonarQube](images/sonar.png)
 
+**Implementación de SonarQube en la pipeline (Jenkinsfile):**
+```groovy
+stage('Run SonarQube Analysis') {
+    when { branch 'master' }
+    tools {
+        jdk 'JDK 17'
+    }
+    environment {
+        JAVA_HOME = tool 'JDK 17'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        scannerHome = tool 'lil-sonar-tool'
+    }
+    steps {
+        script {
+            def javaServices = [
+                'api-gateway',
+                'cloud-config',
+                'favourite-service',
+                'order-service',
+                'payment-service',
+                'product-service',
+                'proxy-client',
+                'service-discovery',
+                'shipping-service',
+                'user-service',
+                'e2e-tests'
+            ]
+
+            withSonarQubeEnv(credentialsId: 'sonarqube_password', installationName: 'lil sonar installation') {
+                javaServices.each { service ->
+                    dir(service) {
+                        bat "${scannerHome}/bin/sonar-scanner " +
+                        "-Dsonar.projectKey=${service} " +
+                        "-Dsonar.projectName=${service} " +
+                        '-Dsonar.sources=src ' +
+                        '-Dsonar.java.binaries=target/classes'
+                    }
+                }
+
+                dir('locust') {
+                    bat "${scannerHome}/bin/sonar-scanner " +
+                    '-Dsonar.projectKey=locust ' +
+                    '-Dsonar.projectName=locust ' +
+                    '-Dsonar.sources=test'
+                }
+            }
+        }
+    }
+}
+
 ---
 
 ## 5. Diseño y Ejecución de Pruebas
@@ -1451,6 +1501,12 @@ El proceso concluye con la generación automática de release notes usando `conv
 
 ## 7. Costos de Infraestructura en la Nube
 
+Antes de abordar el análisis de costos, es importante destacar el uso de **Google Cloud Platform (GCP)** como proveedor principal de infraestructura para este proyecto. GCP ofrece una plataforma robusta y escalable que permite desplegar, gestionar y monitorear microservicios de manera eficiente. Durante el desarrollo, se aprovecharon servicios como Google Kubernetes Engine (GKE), Cloud Storage y herramientas de monitoreo integradas, lo que facilitó la automatización, la observabilidad y la gestión centralizada de recursos.
+
+La interfaz de GCP proporciona visibilidad en tiempo real sobre el consumo de recursos, la facturación y el estado de los servicios desplegados, permitiendo un control detallado del presupuesto y la optimización de la infraestructura.
+
+![Panel de control GCP](images/cloud.png)
+
 La gestión eficiente de los costos es fundamental en cualquier arquitectura basada en la nube. Durante el desarrollo y pruebas del proyecto, se utilizó la capa gratuita de Google Cloud Platform (GCP), lo que permitió experimentar con recursos reales sin incurrir en gastos significativos.
 
 A continuación se muestra un ejemplo del panel de control de GCP, donde se visualiza el consumo de créditos gratuitos y el presupuesto restante:
@@ -1483,7 +1539,9 @@ Prometheus es el sistema principal para la recolección de métricas de todos lo
 Prometheus incluye reglas para detectar caídas de pods, errores en la recarga de configuración y problemas en el clúster.
 
 ![Prometheus Alertas](images/prome2.png)
-![Prometheus Alertas 2](images/prome3.png)
+
+#### Prometheus Pods
+![Prometheus Alertas](images/prometheus-pods.png)
 
 ---
 
@@ -1621,6 +1679,61 @@ Se integró OWASP ZAP para pruebas de seguridad dinámica sobre los endpoints HT
 - **Reporte HTML integrado en Jenkins**
 
 ![Reporte ZAP](images/zap.png)
+
+**Fragmento del Jenkinsfile:**
+```groovy
+stage('OWASP ZAP Scan') {
+    when { branch 'stage' }
+    steps {
+        script {
+            echo '==> Iniciando escaneos con OWASP ZAP'
+
+            def targets = [
+                [name: 'order-service', url: 'http://order-service-container:8300/order-service'],
+                [name: 'payment-service', url: 'http://payment-service-container:8400/payment-service'],
+                [name: 'product-service', url: 'http://product-service-container:8500/product-service'],
+                [name: 'shipping-service', url: 'http://shipping-service-container:8600/shipping-service'],
+                [name: 'user-service', url: 'http://user-service-container:8700/user-service'],
+                [name: 'favourite-service', url: 'http://favourite-service-container:8800/favourite-service']
+            ]
+
+            bat 'if not exist zap-reports mkdir zap-reports'
+
+            targets.each { service ->
+                def reportFile = "report-${service.name}.html"
+                echo "==> Escaneando ${service.name} (${service.url})"
+                bat """
+                    docker run --rm ^
+                    --network ecommerce-test ^
+                    -v "%WORKSPACE%/zap-reports:/zap/wrk/zap-reports" ^
+                    zaproxy/zap-stable ^
+                    zap-full-scan.py ^
+                    -t ${service.url} ^
+                    -r zap-reports/${reportFile} ^
+                    -I
+                """
+            }
+            bat 'dir zap-reports'
+        }
+    }
+}
+
+stage('Publicar Reportes de Seguridad') {
+    when { branch 'stage' }
+    steps {
+        echo '==> Publicando reportes HTML en interfaz Jenkins'
+        publishHTML([
+            allowMissing: false,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: 'zap-reports',
+            reportFiles: 'report-*.html',
+            reportName: 'ZAP Security Reports',
+            reportTitles: 'OWASP ZAP Full Scan Results'
+        ])
+    }
+}
+```
 
 ---
 
