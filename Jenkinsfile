@@ -53,6 +53,11 @@ pipeline {
         }
 
         stage('Authenticate to GCP') {
+            when {
+                anyOf {
+                    branch 'prod'; branch 'stage';
+                }
+            }
             steps {
                 withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     bat """
@@ -65,6 +70,11 @@ pipeline {
         }
 
         stage('Get GKE Credentials') {
+            when {
+                anyOf {
+                    branch 'prod'; branch 'stage';
+                }
+            }
             steps {
                 script {
                     def clusterName = "ecommerce-cluster-${env.SPRING_PROFILES_ACTIVE}"
@@ -103,7 +113,6 @@ pipeline {
                 script {
                     def ns = env.K8S_NAMESPACE
                     bat "kubectl get namespace ${ns} || kubectl create namespace ${ns}"
-                    bat "kubectl get namespace monitoring || kubectl create namespace monitoring"
                 }
             }
         }
