@@ -932,6 +932,8 @@ stage('Run SonarQube Analysis') {
     }
 }
 
+```
+
 ---
 
 ## 5. Diseño y Ejecución de Pruebas
